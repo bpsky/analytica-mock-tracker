@@ -1,12 +1,12 @@
 /* =============================================
-   Professional Backup & Export System v1.6
-   Clean UI + Enhanced PDF
+   Premium Data Management System v1.7
+   Merged Backup + Export + Reset
    ============================================= */
 
 const BACKUP = {
   repo: "bpsky/analytica-mock-tracker",
   filename: "analytica-backup.json",
-  version: "1.6"
+  version: "1.7"
 };
 
 // Load jsPDF
@@ -20,132 +20,134 @@ function loadJsPDF() {
   });
 }
 
-// ====================== PDF Export (Enhanced) ======================
+// Enhanced PDF Export
 window.exportToPDF = async () => {
   await loadJsPDF();
   const { jsPDF } = window.jspdf;
-  UI.toast('Generating professional PDF report...', 'info');
+  UI.toast('Generating detailed report...', 'info');
 
   try {
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = new jsPDF();
     let y = 20;
     const margin = 20;
 
-    doc.setFontSize(22);
+    doc.setFontSize(20);
     doc.text("Analytica Mock Tracker", margin, y);
-    y += 12;
+    y += 15;
 
     doc.setFontSize(12);
-    doc.text(`Detailed Analysis Report • ${new Date().toLocaleDateString()}`, margin, y);
+    doc.text(`Report Date: ${new Date().toLocaleString()}`, margin, y);
     y += 20;
 
-    // Add more content here (same as previous enhanced version)
     const state = Store.state || {};
     const stats = Analytics.stats ? Analytics.stats('all') : {};
 
     doc.setFontSize(16);
-    doc.text("Overall Performance Summary", margin, y);
+    doc.text("Performance Summary", margin, y);
     y += 10;
 
     doc.setFontSize(11);
-    const summary = [
+    const lines = [
       `Total Tests: ${state.tests?.length || 0}`,
       `Average Score: ${stats.avgMarks ? stats.avgMarks.toFixed(1) : 0}/100`,
       `Average Accuracy: ${stats.avgAccuracy ? stats.avgAccuracy.toFixed(1) : 0}%`,
       `Best Score: ${stats.bestScore || 0}`,
     ];
 
-    summary.forEach(line => {
+    lines.forEach(line => {
       doc.text(line, margin + 5, y);
       y += 8;
     });
 
     doc.save(`analytica-report-${new Date().toISOString().slice(0,10)}.pdf`);
-    UI.toast('✅ Professional PDF downloaded!', 'success');
+    UI.toast('✅ PDF Report Downloaded', 'success');
   } catch (e) {
-    UI.toast('❌ PDF generation failed', 'error');
+    UI.toast('PDF generation failed', 'error');
   }
 };
 
-// ====================== PROFESSIONAL BACKUP UI ======================
-function setupBackupSystem() {
+// ====================== MAIN SETUP ======================
+function setupDataManagement() {
   const oldSettings = Pages.settings;
-  
+
   Pages.settings = function() {
     oldSettings.call(this);
 
     setTimeout(() => {
-      const container = document.querySelector('.card:has(.i-database)') || document.querySelectorAll('.card').at(-1);
+      // Find existing data card or last card
+      let container = document.querySelector('.card:has(.i-database)') || document.querySelectorAll('.card').at(-1);
       if (!container) return;
 
-      const backupCard = document.createElement('div');
-      backupCard.className = 'card mt-8 shadow-sm';
-      backupCard.innerHTML = `
-        <div class="card-header border-b pb-4">
+      const dmCard = document.createElement('div');
+      dmCard.className = 'card mt-8';
+      dmCard.innerHTML = `
+        <div class="card-header">
           <div class="flex items-center gap-3">
-            <i class="i-cloud-upload text-2xl text-blue-600"></i>
+            <i class="i-database text-3xl text-indigo-600"></i>
             <div>
-              <div class="card-title text-xl">Backup & Export</div>
-              <p class="text-sm text-muted">v${BACKUP.version} • Secure & Professional</p>
+              <div class="card-title text-2xl">Data Management</div>
+              <p class="text-sm text-muted">Backup • Export • Restore • Reset</p>
             </div>
           </div>
         </div>
 
-        <div class="p-6 space-y-8">
+        <div class="p-8 space-y-10">
 
-          <!-- Local Backup Section -->
+          <!-- Local Actions -->
           <div>
-            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-              <i class="i-hard-drive"></i> Local Backup
-            </h3>
-            <div class="flex flex-wrap gap-3">
-              <button id="exportFileBtn" class="btn btn-primary flex-1 py-3">
+            <h3 class="uppercase text-xs font-semibold tracking-widest text-muted mb-4">Local Storage</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button id="exportJSONBtn" class="btn btn-primary h-14 flex items-center justify-center gap-3 text-base">
                 <i class="i-download"></i> Export JSON Backup
               </button>
-              <button id="exportPDFBtn" class="btn btn-success flex-1 py-3">
+              <button id="exportPDFBtn" class="btn btn-success h-14 flex items-center justify-center gap-3 text-base">
                 <i class="i-file-text"></i> Export Full PDF Report
               </button>
-              <button id="importFileBtn" class="btn btn-secondary flex-1 py-3">
-                <i class="i-upload"></i> Import JSON
+              <button id="importJSONBtn" class="btn btn-secondary h-14 flex items-center justify-center gap-3 text-base">
+                <i class="i-upload"></i> Import JSON Backup
               </button>
             </div>
           </div>
 
-          <!-- Cloud Backup Section -->
+          <!-- Cloud Sync -->
           <div class="pt-6 border-t">
-            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-              <i class="i-github"></i> GitHub Cloud Sync
-            </h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-              <button id="pushGitHubBtn" class="btn btn-blue py-3">
+            <h3 class="uppercase text-xs font-semibold tracking-widest text-muted mb-4">GitHub Cloud Sync</h3>
+            <div class="flex gap-4">
+              <button id="pushGitHubBtn" class="btn btn-blue flex-1 h-14 flex items-center justify-center gap-3">
                 <i class="i-upload-cloud"></i> Push to GitHub
               </button>
-              <button id="pullGitHubBtn" class="btn btn-blue py-3">
+              <button id="pullGitHubBtn" class="btn btn-blue flex-1 h-14 flex items-center justify-center gap-3">
                 <i class="i-download-cloud"></i> Pull from GitHub
               </button>
             </div>
 
-            <div class="field">
-              <label class="font-medium">GitHub Personal Access Token</label>
-              <input type="password" id="ghToken" class="input mt-2" 
+            <div class="mt-6">
+              <label class="block text-sm font-medium mb-2">GitHub Personal Access Token</label>
+              <input type="password" id="ghToken" class="input" 
                      placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxx" 
                      value="${localStorage.getItem('ghToken') || ''}">
-              <p class="text-xs text-muted mt-2">• Saved only in your browser<br>• Needs <strong>repo</strong> permission</p>
+              <button id="saveTokenBtn" class="btn btn-sm mt-3">Save Token</button>
+              <p class="text-xs text-muted mt-3">Token is stored only in your browser • Requires <b>repo</b> scope</p>
             </div>
-            
-            <button id="saveToken" class="btn btn-sm mt-4">Save Token</button>
           </div>
 
+          <!-- Danger Zone -->
+          <div class="pt-8 border-t border-red-200">
+            <h3 class="uppercase text-xs font-semibold tracking-widest text-red-600 mb-4">Danger Zone</h3>
+            <button id="resetAllBtn" class="btn btn-danger w-full h-12 flex items-center justify-center gap-3">
+              <i class="i-trash"></i> Reset All Data (Factory Reset)
+            </button>
+            <p class="text-xs text-red-500 mt-3">This will permanently delete all tests, settings, and progress.</p>
+          </div>
         </div>
       `;
 
-      container.parentNode.appendChild(backupCard);
+      container.parentNode.appendChild(dmCard);
 
-      // Event Listeners
-      document.getElementById('exportFileBtn').onclick = window.exportToFile;
+      // Attach Events
+      document.getElementById('exportJSONBtn').onclick = window.exportToFile;
       document.getElementById('exportPDFBtn').onclick = window.exportToPDF;
-      document.getElementById('importFileBtn').onclick = () => {
+      document.getElementById('importJSONBtn').onclick = () => {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
@@ -156,13 +158,23 @@ function setupBackupSystem() {
       document.getElementById('pushGitHubBtn').onclick = window.pushToGitHub;
       document.getElementById('pullGitHubBtn').onclick = window.pullFromGitHub;
 
-      document.getElementById('saveToken').onclick = () => {
+      document.getElementById('saveTokenBtn').onclick = () => {
         const token = document.getElementById('ghToken').value.trim();
         if (token) {
           localStorage.setItem('ghToken', token);
-          UI.toast('✅ Token saved successfully', 'success');
+          UI.toast('✅ GitHub token saved', 'success');
         } else {
-          UI.toast('Please enter your GitHub token', 'error');
+          UI.toast('Please enter a valid token', 'error');
+        }
+      };
+
+      document.getElementById('resetAllBtn').onclick = () => {
+        if (confirm("⚠️ WARNING: This will delete ALL your data permanently.\n\nAre you absolutely sure?")) {
+          if (confirm("Final confirmation: Delete everything?")) {
+            localStorage.clear();
+            UI.toast('All data has been reset', 'success');
+            setTimeout(() => location.reload(), 1500);
+          }
         }
       };
 
@@ -170,20 +182,22 @@ function setupBackupSystem() {
   };
 }
 
-// Keep your existing functions (exportToFile, importFromFile, pushToGitHub, pullFromGitHub)
+// Existing Functions
 window.exportToFile = () => {
   try {
-    const data = Store.exportJSON ? Store.exportJSON() : JSON.stringify(Store.state, null, 2);
+    const data = Store.exportJSON ? Store.exportJSON() : JSON.stringify(Store.state || {}, null, 2);
     const backup = {
       metadata: { app: "analytica-mock-tracker", version: BACKUP.version, timestamp: new Date().toISOString() },
       data: JSON.parse(data)
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = `analytica-backup-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
-    UI.toast('✅ JSON backup downloaded', 'success');
+    URL.revokeObjectURL(url);
+    UI.toast('✅ JSON Backup Downloaded', 'success');
   } catch (e) {
     UI.toast('Export failed', 'error');
   }
@@ -194,21 +208,21 @@ window.importFromFile = (file) => {
   reader.onload = () => {
     try {
       const backup = JSON.parse(reader.result);
-      if (confirm("Import this backup? Current data will be merged.")) {
+      if (confirm("Import backup? This will merge with your current data.")) {
         Store.importData(backup.data || backup, 'merge');
-        UI.toast('✅ Data imported successfully!', 'success');
-        setTimeout(() => location.reload(), 1200);
+        UI.toast('✅ Data Imported Successfully', 'success');
+        setTimeout(() => location.reload(), 1500);
       }
     } catch (err) {
-      UI.toast('❌ Invalid backup file', 'error');
+      UI.toast('❌ Invalid or corrupted file', 'error');
     }
   };
   reader.readAsText(file);
 };
 
-// GitHub functions (same as before)
-window.pushToGitHub = async () => { /* Keep your previous pushToGitHub code */ };
-window.pullFromGitHub = async () => { /* Keep your previous pullFromGitHub code */ };
+// GitHub Functions (add your previous push/pull logic here if needed)
+window.pushToGitHub = async () => { /* Your previous push code */ };
+window.pullFromGitHub = async () => { /* Your previous pull code */ };
 
-setupBackupSystem();
-console.log('✅ Professional Backup System v1.6 loaded');
+setupDataManagement();
+console.log('✅ Premium Data Management v1.7 Loaded');
