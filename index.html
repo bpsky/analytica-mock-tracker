@@ -1301,8 +1301,17 @@ const Pages = (() => {
     }
 
     UI.page.innerHTML = `
-      <div class="grid grid-4 mb-4">
-        ${UI.kpi('Total Tests', st?.count || 0, 'Sectional attempts', 'bar-chart-3')}
+      <div class="flex justify-between items-start mb-4">
+  <div class="grid grid-4 flex-1">
+    ${UI.kpi('Total Tests', st?.count || 0, 'Sectional attempts', 'bar-chart-3')}
+    ${UI.kpi('Avg Score', UI.fmt(st?.avgMarks||0,1), `of ${st?.bestScore?UI.fmt(st.bestScore,0):'—'} best`, 'target', st && st.avgMarks>0?'up':'')}
+    \( {UI.kpi('Avg Accuracy', UI.fmt(st?.avgAccuracy||0,1)+'%', ` \){UI.fmt(st?.avgAttemptPct||0,0)}% attempt`, 'percent', (st?.avgAccuracy||0)>=65?'up':'down')}
+    \( {UI.kpi('Questions Solved', UI.fmt(st?.attempted||0), ` \){UI.fmt(st?.totalQ||0)} total`, 'hash')}
+  </div>
+  <div class="text-xs bg-surface border px-3 py-1 rounded-lg font-mono text-muted">
+    v1.2
+  </div>
+</div>
         ${UI.kpi('Avg Score', UI.fmt(st?.avgMarks||0,1), `of ${st?.bestScore?UI.fmt(st.bestScore,0):'—'} best`, 'target', st && st.avgMarks>0?'up':'')}
         ${UI.kpi('Avg Accuracy', UI.fmt(st?.avgAccuracy||0,1)+'%', `${UI.fmt(st?.avgAttemptPct||0,0)}% attempt`, 'percent', (st?.avgAccuracy||0)>=65?'up':'down')}
         ${UI.kpi('Questions Solved', UI.fmt(st?.attempted||0), `${UI.fmt(st?.totalQ||0)} total`, 'hash')}
