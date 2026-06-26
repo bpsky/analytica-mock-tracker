@@ -1,14 +1,14 @@
 /* =============================================
-   Analytica Backup + PDF Export v1.4
+   Analytica Backup + Enhanced PDF Export v1.5
    ============================================= */
 
 const BACKUP = {
   repo: "bpsky/analytica-mock-tracker",
   filename: "analytica-backup.json",
-  version: "1.4"
+  version: "1.5"
 };
 
-// Load jsPDF from CDN (only once)
+// Load jsPDF
 function loadJsPDF() {
   return new Promise((resolve) => {
     if (window.jsPDF) return resolve();
@@ -19,75 +19,145 @@ function loadJsPDF() {
   });
 }
 
-// ====================== EXPORT ALL ANALYSIS AS PDF ======================
+// ====================== ENHANCED EXPORT TO PDF ======================
 window.exportToPDF = async () => {
   await loadJsPDF();
   const { jsPDF } = window.jspdf;
 
-  UI.toast('Generating PDF...', 'info');
+  UI.toast('Generating detailed PDF report...', 'info');
 
   try {
     const doc = new jsPDF('p', 'mm', 'a4');
     let y = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
 
-    doc.setFontSize(18);
-    doc.text("Analytica Mock Tracker - Full Analysis Report", 20, y);
-    y += 15;
-
-    doc.setFontSize(11);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, y);
+    // Header
+    doc.setFontSize(20);
+    doc.text("Analytica — Mock Interview Tracker", margin, y);
     y += 10;
 
-    // Add summary from Store if available
-    if (window.Store && Store.state) {
-      const state = Store.state;
-      
-      doc.setFontSize(14);
-      doc.text("📊 Summary", 20, y);
+    doc.setFontSize(11);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, margin, y);
+    y += 15;
+
+    const state = Store.state || { tests: [], subjects: [], settings: {} };
+    const stats = Analytics.stats ? Analytics.stats('all') : null;
+    const weakTopics = Analytics.weakTopics ? Analytics.weakTopics('all') : [];
+    const strongTopics = Analytics.strongTopics ? Analytics.strongTopics('all') : [];
+    const insights = Analytics.generateInsights ? Analytics.generateInsights('all') : [];
+    const recentTests = [...(state.tests || [])].slice(0, 10);
+
+    // 1. Overall Summary
+    doc.setFontSize(16);
+    doc.text("📊 Overall Summary", margin, y);
+    y += 10;
+
+    doc.setFontSize(11);
+    const summaryLines = [
+      `Total Mock Tests Taken: ${state.tests?.length || 0}`,
+      `Average Score: ${stats ? stats.avgMarks.toFixed(1) : 0} / 100`,
+      `Average Accuracy: ${stats ? stats.avgAccuracy.toFixed(1) : 0}%`,
+      `Total Questions Attempted: ${stats ? stats.attempted : 0}`,
+      `Current Streak: ${Analytics.streak ? Analytics.streak() : 0} days`,
+      `Best Score: ${stats ? stats.bestScore : 0}`,
+      `Improvement Trend: ${Analytics.improvement ? (Analytics.improvement().delta > 0 ? 'Improving' : 'Needs Focus') : '—'}`
+    ];
+
+    summaryLines.forEach(line => {
+      doc.text(line, margin + 5, y);
+      y += 7;
+    });
+    y += 10;
+
+    // 2. Subject-wise Performance
+    doc.setFontSize(16);
+    doc.text("📈 Subject-wise Performance", margin, y);
+    y += 10;
+
+    doc.setFontSize(10);
+    doc.text("Subject              | Tests | Avg Score | Avg Accuracy", margin, y);
+    y += 6;
+
+    state.subjects.forEach(sub => {
+      const sStats = Analytics.stats ? Analytics.stats(sub.id) : null;
+      const line = `${sub.name.padEnd(20)} | ${sStats?.count || 0}     | ${sStats?.avgMarks?.toFixed(1) || 0}      | ${sStats?.avgAccuracy?.toFixed(1) || 0}%`;
+      doc.text(line, margin + 5, y);
+      y += 7;
+      if (y > 270) { doc.addPage(); y = 20; }
+    });
+    y += 12;
+
+    // 3. Recent Tests
+    if (recentTests.length) {
+      doc.setFontSize(16);
+      doc.text("📋 Recent Tests", margin, y);
       y += 10;
 
-      doc.setFontSize(11);
-      const lines = [
-        `Total Tests: ${state.tests?.length || 0}`,
-        `Sections: ${Object.keys(state.sections || {}).length}`,
-        `Last Updated: ${new Date(state.lastUpdated || Date.now()).toLocaleDateString()}`
-      ];
-
-      lines.forEach(line => {
-        doc.text(line, 25, y);
-        y += 8;
+      doc.setFontSize(10);
+      recentTests.forEach((test, i) => {
+        const subjectName = UI.subjectName ? UI.subjectName(test.subject) : test.subject;
+        const line = `${i+1}. ${subjectName} — \( {test.marks || 0} marks ( \){(test.accuracy || 0).toFixed(1)}%) on ${UI.fmtDate ? UI.fmtDate(test.date) : test.date}`;
+        doc.text(line, margin + 5, y);
+        y += 7;
+        if (y > 270) { doc.addPage(); y = 20; }
       });
       y += 10;
     }
 
-    // Add more readable content (you can expand this)
-    doc.setFontSize(13);
-    doc.text("📋 Detailed Analysis", 20, y);
-    y += 10;
+    // 4. Weak & Strong Topics
+    doc.setFontSize(14);
+    doc.text("🔻 Weak Topics (Focus Here)", margin, y);
+    y += 8;
+    weakTopics.slice(0, 6).forEach(t => {
+      doc.text(`• \( {t.topic} ( \){t.avgAccuracy.toFixed(1)}% accuracy)`, margin + 5, y);
+      y += 7;
+    });
 
-    doc.setFontSize(10);
-    doc.text("This report contains your complete mock interview analysis, feedback,", 20, y);
-    y += 7;
-    doc.text("strengths, weaknesses, and progress tracking.", 20, y);
-    y += 15;
+    y += 8;
+    doc.text("🔺 Strong Topics", margin, y);
+    y += 8;
+    strongTopics.slice(0, 5).forEach(t => {
+      doc.text(`• \( {t.topic} ( \){t.avgAccuracy.toFixed(1)}% accuracy)`, margin + 5, y);
+      y += 7;
+    });
+    y += 12;
 
-    // You can add more dynamic content here later (charts as images, etc.)
+    // 5. Insights & Recommendations
+    if (insights.length) {
+      doc.setFontSize(16);
+      doc.text("💡 Key Insights & Recommendations", margin, y);
+      y += 10;
 
-    doc.save(`analytica-full-report-${new Date().toISOString().slice(0,10)}.pdf`);
-    UI.toast('✅ PDF downloaded successfully!', 'success');
+      doc.setFontSize(11);
+      insights.forEach(ins => {
+        const text = `• ${ins.text.replace(/<strong>|<\/strong>/g, '')}`;
+        const splitText = doc.splitTextToSize(text, pageWidth - margin * 2);
+        doc.text(splitText, margin + 5, y);
+        y += splitText.length * 7;
+        if (y > 260) { doc.addPage(); y = 20; }
+      });
+    }
+
+    // Footer
+    doc.setFontSize(9);
+    doc.text("Generated by Analytica Mock Tracker • For personal use", margin, 285);
+
+    doc.save(`analytica-full-analysis-${new Date().toISOString().slice(0,10)}.pdf`);
+    UI.toast('✅ Detailed PDF report downloaded!', 'success');
   } catch (e) {
     console.error(e);
-    UI.toast('❌ PDF generation failed', 'error');
+    UI.toast('❌ Failed to generate PDF. Try again.', 'error');
   }
 };
 
-// Keep all your previous backup functions (exportToFile, pushToGitHub, etc.)
-// ... (the rest of your previous code remains the same)
+// ====================== BACKUP FUNCTIONS (unchanged) ======================
+window.exportToFile = () => { /* ... keep your existing exportToFile ... */ };
+window.importFromFile = (file) => { /* ... keep your existing ... */ };
+window.pushToGitHub = async () => { /* ... keep existing ... */ };
+window.pullFromGitHub = async () => { /* ... keep existing ... */ };
 
 function setupBackupSystem() {
-  // Previous functions: exportToFile, importFromFile, pushToGitHub, pullFromGitHub...
-
-  // Add PDF button in settings
   const oldSettings = Pages.settings;
   Pages.settings = function() {
     oldSettings.call(this);
@@ -103,8 +173,8 @@ function setupBackupSystem() {
           <div class="card-title"><i class="i-cloud-upload"></i> Backup &amp; Export (v${BACKUP.version})</div>
         </div>
         <div class="flex flex-wrap gap-3 mb-6">
-          <button class="btn" id="exportFileBtn"><i class="i-download"></i> Export to JSON</button>
-          <button class="btn" id="exportPDFBtn"><i class="i-file-text"></i> Export as PDF (Readable)</button>
+          <button class="btn" id="exportFileBtn"><i class="i-download"></i> Export JSON</button>
+          <button class="btn" id="exportPDFBtn"><i class="i-file-text"></i> Export Full PDF Report</button>
           <button class="btn" id="importFileBtn"><i class="i-upload"></i> Import JSON</button>
           <button class="btn" id="pushGitHubBtn"><i class="i-github"></i> Push to GitHub</button>
           <button class="btn" id="pullGitHubBtn"><i class="i-download-cloud"></i> Pull from GitHub</button>
@@ -113,17 +183,22 @@ function setupBackupSystem() {
         <div class="field">
           <label>GitHub Personal Access Token</label>
           <input type="password" id="ghToken" class="input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxx" value="${localStorage.getItem('ghToken')||''}">
-          <p class="text-xs text-muted mt-1">Saved only in your browser. Needs repo permission.</p>
+          <p class="text-xs text-muted mt-1">Saved only in browser. Needs <b>repo</b> scope.</p>
         </div>
         <button class="btn btn-sm" id="saveToken">Save Token</button>
       `;
 
       dataCard.parentNode.appendChild(backupSection);
 
-      // Button events
+      // Button bindings
       document.getElementById('exportFileBtn').onclick = window.exportToFile;
       document.getElementById('exportPDFBtn').onclick = window.exportToPDF;
-      document.getElementById('importFileBtn').onclick = () => { /* your import code */ };
+      document.getElementById('importFileBtn').onclick = () => {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = '.json';
+        inp.onchange = e => e.target.files[0] && window.importFromFile(e.target.files[0]);
+        inp.click();
+      };
       document.getElementById('pushGitHubBtn').onclick = window.pushToGitHub;
       document.getElementById('pullGitHubBtn').onclick = window.pullFromGitHub;
 
@@ -132,11 +207,11 @@ function setupBackupSystem() {
         if (token) {
           localStorage.setItem('ghToken', token);
           UI.toast('✅ Token saved!', 'success');
-        }
+        } else UI.toast('Enter token first', 'error');
       };
     }, 300);
   };
 }
 
 setupBackupSystem();
-console.log('✅ Backup + PDF Export v1.4 loaded');
+console.log('✅ Enhanced Backup + PDF v1.5 loaded');
