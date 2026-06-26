@@ -1,12 +1,12 @@
 /* =============================================
-   Premium Data Management & Backup v1.7
-   Unified + Professional UI
+   Professional Backup & Export System v1.6
+   Clean UI + Enhanced PDF
    ============================================= */
 
 const BACKUP = {
   repo: "bpsky/analytica-mock-tracker",
   filename: "analytica-backup.json",
-  version: "1.7"
+  version: "1.6"
 };
 
 // Load jsPDF
@@ -20,127 +20,129 @@ function loadJsPDF() {
   });
 }
 
-// Enhanced PDF Export
+// ====================== PDF Export (Enhanced) ======================
 window.exportToPDF = async () => {
   await loadJsPDF();
   const { jsPDF } = window.jspdf;
-  UI.toast('Generating detailed report...', 'info');
+  UI.toast('Generating professional PDF report...', 'info');
 
   try {
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'mm', 'a4');
     let y = 20;
     const margin = 20;
 
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.text("Analytica Mock Tracker", margin, y);
-    y += 15;
+    y += 12;
 
     doc.setFontSize(12);
-    doc.text(`Full Analysis Report — ${new Date().toLocaleDateString()}`, margin, y);
+    doc.text(`Detailed Analysis Report • ${new Date().toLocaleDateString()}`, margin, y);
     y += 20;
 
-    // Add summary (expandable later)
+    // Add more content here (same as previous enhanced version)
     const state = Store.state || {};
-    doc.setFontSize(14);
-    doc.text("Performance Summary", margin, y);
+    const stats = Analytics.stats ? Analytics.stats('all') : {};
+
+    doc.setFontSize(16);
+    doc.text("Overall Performance Summary", margin, y);
     y += 10;
+
     doc.setFontSize(11);
-    doc.text(`Total Tests: ${state.tests?.length || 0}`, margin, y); y += 8;
-    doc.text(`Avg Score: ${Analytics.stats ? Analytics.stats('all').avgMarks.toFixed(1) : 0}`, margin, y);
+    const summary = [
+      `Total Tests: ${state.tests?.length || 0}`,
+      `Average Score: ${stats.avgMarks ? stats.avgMarks.toFixed(1) : 0}/100`,
+      `Average Accuracy: ${stats.avgAccuracy ? stats.avgAccuracy.toFixed(1) : 0}%`,
+      `Best Score: ${stats.bestScore || 0}`,
+    ];
+
+    summary.forEach(line => {
+      doc.text(line, margin + 5, y);
+      y += 8;
+    });
 
     doc.save(`analytica-report-${new Date().toISOString().slice(0,10)}.pdf`);
-    UI.toast('✅ PDF Report Downloaded', 'success');
+    UI.toast('✅ Professional PDF downloaded!', 'success');
   } catch (e) {
-    UI.toast('PDF generation failed', 'error');
+    UI.toast('❌ PDF generation failed', 'error');
   }
 };
 
-// ====================== MAIN SETUP ======================
-function setupDataManagement() {
+// ====================== PROFESSIONAL BACKUP UI ======================
+function setupBackupSystem() {
   const oldSettings = Pages.settings;
   
   Pages.settings = function() {
     oldSettings.call(this);
 
     setTimeout(() => {
-      // Remove old data card if exists
-      document.querySelectorAll('.card').forEach(card => {
-        if (card.textContent.includes('Data Management') || card.textContent.includes('Backup')) {
-          card.remove();
-        }
-      });
+      const container = document.querySelector('.card:has(.i-database)') || document.querySelectorAll('.card').at(-1);
+      if (!container) return;
 
-      const dataCard = document.createElement('div');
-      dataCard.className = 'card mt-8';
-      dataCard.innerHTML = `
-        <div class="card-header">
+      const backupCard = document.createElement('div');
+      backupCard.className = 'card mt-8 shadow-sm';
+      backupCard.innerHTML = `
+        <div class="card-header border-b pb-4">
           <div class="flex items-center gap-3">
-            <i class="i-database text-3xl text-indigo-600"></i>
+            <i class="i-cloud-upload text-2xl text-blue-600"></i>
             <div>
-              <div class="card-title text-2xl">Data Management & Backup</div>
-              <p class="text-sm text-muted">Export, Import, Sync & Reset • v${BACKUP.version}</p>
+              <div class="card-title text-xl">Backup & Export</div>
+              <p class="text-sm text-muted">v${BACKUP.version} • Secure & Professional</p>
             </div>
           </div>
         </div>
 
-        <div class="p-8 space-y-10">
+        <div class="p-6 space-y-8">
 
-          <!-- Local Storage -->
+          <!-- Local Backup Section -->
           <div>
-            <h3 class="uppercase text-xs tracking-widest text-muted mb-4">LOCAL BACKUP</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <button id="exportFileBtn" class="btn btn-primary h-14 flex items-center justify-center gap-2 text-base">
-                <i class="i-download"></i> Export JSON
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+              <i class="i-hard-drive"></i> Local Backup
+            </h3>
+            <div class="flex flex-wrap gap-3">
+              <button id="exportFileBtn" class="btn btn-primary flex-1 py-3">
+                <i class="i-download"></i> Export JSON Backup
               </button>
-              <button id="exportPDFBtn" class="btn btn-success h-14 flex items-center justify-center gap-2 text-base">
-                <i class="i-file-text"></i> Export PDF Report
+              <button id="exportPDFBtn" class="btn btn-success flex-1 py-3">
+                <i class="i-file-text"></i> Export Full PDF Report
               </button>
-              <button id="importFileBtn" class="btn h-14 flex items-center justify-center gap-2 text-base">
+              <button id="importFileBtn" class="btn btn-secondary flex-1 py-3">
                 <i class="i-upload"></i> Import JSON
               </button>
             </div>
           </div>
 
-          <!-- Cloud Sync -->
-          <div class="pt-8 border-t">
-            <h3 class="uppercase text-xs tracking-widest text-muted mb-4 flex items-center gap-2">
-              <i class="i-github"></i> GITHUB CLOUD SYNC
+          <!-- Cloud Backup Section -->
+          <div class="pt-6 border-t">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+              <i class="i-github"></i> GitHub Cloud Sync
             </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <button id="pushGitHubBtn" class="btn btn-blue h-14 flex items-center justify-center gap-2">
-                <i class="i-cloud-upload"></i> Push to GitHub
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+              <button id="pushGitHubBtn" class="btn btn-blue py-3">
+                <i class="i-upload-cloud"></i> Push to GitHub
               </button>
-              <button id="pullGitHubBtn" class="btn btn-blue h-14 flex items-center justify-center gap-2">
-                <i class="i-cloud-download"></i> Pull from GitHub
+              <button id="pullGitHubBtn" class="btn btn-blue py-3">
+                <i class="i-download-cloud"></i> Pull from GitHub
               </button>
             </div>
 
             <div class="field">
               <label class="font-medium">GitHub Personal Access Token</label>
-              <input type="password" id="ghToken" class="input" 
-                     placeholder="ghp_xxxxxxxxxxxxxxxx" 
+              <input type="password" id="ghToken" class="input mt-2" 
+                     placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxx" 
                      value="${localStorage.getItem('ghToken') || ''}">
-              <p class="text-xs text-muted mt-2">Saved locally in browser • Requires <strong>repo</strong> permission</p>
+              <p class="text-xs text-muted mt-2">• Saved only in your browser<br>• Needs <strong>repo</strong> permission</p>
             </div>
-            <button id="saveTokenBtn" class="btn mt-4">Save Token</button>
-          </div>
-
-          <!-- Danger Zone -->
-          <div class="pt-8 border-t border-red-200">
-            <h3 class="uppercase text-xs tracking-widest text-red-600 mb-4">DANGER ZONE</h3>
-            <button id="resetAllBtn" class="btn btn-danger w-full h-14 flex items-center justify-center gap-2 text-base">
-              <i class="i-trash"></i> Reset All Data (Clear Everything)
-            </button>
-            <p class="text-xs text-red-500 mt-3">This action cannot be undone without a backup.</p>
+            
+            <button id="saveToken" class="btn btn-sm mt-4">Save Token</button>
           </div>
 
         </div>
       `;
 
-      const lastCard = document.querySelectorAll('.card').at(-1);
-      if (lastCard) lastCard.parentNode.appendChild(dataCard);
+      container.parentNode.appendChild(backupCard);
 
-      // Attach Events
+      // Event Listeners
       document.getElementById('exportFileBtn').onclick = window.exportToFile;
       document.getElementById('exportPDFBtn').onclick = window.exportToPDF;
       document.getElementById('importFileBtn').onclick = () => {
@@ -154,34 +156,21 @@ function setupDataManagement() {
       document.getElementById('pushGitHubBtn').onclick = window.pushToGitHub;
       document.getElementById('pullGitHubBtn').onclick = window.pullFromGitHub;
 
-      document.getElementById('saveTokenBtn').onclick = () => {
+      document.getElementById('saveToken').onclick = () => {
         const token = document.getElementById('ghToken').value.trim();
         if (token) {
           localStorage.setItem('ghToken', token);
-          UI.toast('✅ Token saved securely', 'success');
+          UI.toast('✅ Token saved successfully', 'success');
         } else {
-          UI.toast('Please enter a valid token', 'error');
+          UI.toast('Please enter your GitHub token', 'error');
         }
       };
 
-      document.getElementById('resetAllBtn').onclick = () => {
-        if (confirm("⚠️ WARNING: This will delete ALL your tests, progress, and settings.\n\nAre you sure?")) {
-          if (confirm("Final confirmation: Type 'DELETE' to confirm")) {
-            const input = prompt("Type DELETE to confirm:");
-            if (input === "DELETE") {
-              Store.resetAllData ? Store.resetAllData() : (Store.state = { tests: [], subjects: [] });
-              UI.toast('All data has been reset', 'success');
-              setTimeout(() => location.reload(), 1500);
-            }
-          }
-        }
-      };
-
-    }, 300);
+    }, 400);
   };
 }
 
-// Backup Functions
+// Keep your existing functions (exportToFile, importFromFile, pushToGitHub, pullFromGitHub)
 window.exportToFile = () => {
   try {
     const data = Store.exportJSON ? Store.exportJSON() : JSON.stringify(Store.state, null, 2);
@@ -194,7 +183,7 @@ window.exportToFile = () => {
     a.href = URL.createObjectURL(blob);
     a.download = `analytica-backup-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
-    UI.toast('✅ JSON Backup Downloaded', 'success');
+    UI.toast('✅ JSON backup downloaded', 'success');
   } catch (e) {
     UI.toast('Export failed', 'error');
   }
@@ -205,21 +194,21 @@ window.importFromFile = (file) => {
   reader.onload = () => {
     try {
       const backup = JSON.parse(reader.result);
-      if (confirm(`Import backup from ${backup.metadata?.timestamp || 'unknown date'}?`)) {
+      if (confirm("Import this backup? Current data will be merged.")) {
         Store.importData(backup.data || backup, 'merge');
-        UI.toast('✅ Data imported successfully', 'success');
+        UI.toast('✅ Data imported successfully!', 'success');
         setTimeout(() => location.reload(), 1200);
       }
     } catch (err) {
-      UI.toast('❌ Invalid or corrupted file', 'error');
+      UI.toast('❌ Invalid backup file', 'error');
     }
   };
   reader.readAsText(file);
 };
 
-// GitHub Functions (keep your working versions)
-window.pushToGitHub = async () => { /* paste your working pushToGitHub here if different */ };
-window.pullFromGitHub = async () => { /* paste your working pullFromGitHub here */ };
+// GitHub functions (same as before)
+window.pushToGitHub = async () => { /* Keep your previous pushToGitHub code */ };
+window.pullFromGitHub = async () => { /* Keep your previous pullFromGitHub code */ };
 
-setupDataManagement();
-console.log('✅ Premium Data Management System v1.7 Ready');
+setupBackupSystem();
+console.log('✅ Professional Backup System v1.6 loaded');
