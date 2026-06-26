@@ -626,13 +626,13 @@ const Store = (() => {
   const KEY = 'analytica.v1';
 
   const DEFAULT_SUBJECTS = [
-    { id: 'reasoning', name: 'Reasoning', color: '#2563eb', defaultQuestions: 25, timeLimit: 15, marksPerQ: 1, negative: 0.25,
+    { id: 'reasoning', name: 'Reasoning', color: '#2563eb', defaultQuestions: 25, timeLimit: 15, marksPerQ: 2, negative: 0.5,
       topics: ['Coding-Decoding','Blood Relations','Directions','Seating Arrangement','Syllogism','Inequalities','Puzzles','Order-Rank','Machine Input-Output'] },
-    { id: 'english', name: 'English', color: '#16a34a', defaultQuestions: 25, timeLimit: 15, marksPerQ: 1, negative: 0.25,
+    { id: 'english', name: 'English', color: '#16a34a', defaultQuestions: 25, timeLimit: 15, marksPerQ: 2, negative: 0.5,
       topics: ['Reading Comprehension','Cloze Test','Error Detection','Parajumbles','Fillers','Vocabulary','Phrase Replacement'] },
-    { id: 'quant', name: 'Quant', color: '#d97706', defaultQuestions: 25, timeLimit: 20, marksPerQ: 1, negative: 0.25,
+    { id: 'quant', name: 'Quant', color: '#d97706', defaultQuestions: 25, timeLimit: 20, marksPerQ: 2, negative: 0.5,
       topics: ['Percentages','Profit-Loss','Ratio-Proportion','Simple Interest','Compound Interest','Time-Work','Time-Speed','Averages','Number System','Mensuration'] },
-    { id: 'ga', name: 'GA', color: '#dc2626', defaultQuestions: 25, timeLimit: 12, marksPerQ: 1, negative: 0.25,
+    { id: 'ga', name: 'GA', color: '#dc2626', defaultQuestions: 25, timeLimit: 12, marksPerQ: 2, negative: 0.5,
       topics: ['Current Affairs','History','Geography','Polity','Economics','Science','Static GK'] },
   ];
 
@@ -643,8 +643,8 @@ const Store = (() => {
     animation: true,
     defaultQuestions: 25,
     defaultTime: 15,
-    marksPerQ: 1,
-    negative: 0.25,
+    marksPerQ: 2,
+    negative: 0.5,
     lastBackup: null,
     backupReminder: 7, // days
   };
@@ -712,8 +712,8 @@ const Store = (() => {
       s.topics = s.topics || [];
       s.defaultQuestions = s.defaultQuestions || 25;
       s.timeLimit = s.timeLimit || 15;
-      s.marksPerQ = s.marksPerQ || 1;
-      s.negative = s.negative ?? 0.25;
+      s.marksPerQ = s.marksPerQ || 2;
+      s.negative = s.negative ?? 0.5;
       s.color = s.color || '#64748b';
       state.subjects.push(s); save(state);
     },
@@ -2252,7 +2252,7 @@ const Pages = (() => {
     };
 
     const editSubject = (id) => {
-      const s = id ? Store.state.subjects.find(x=>x.id===id) : { id:null, name:'', color:'#2563eb', defaultQuestions:25, timeLimit:15, marksPerQ:1, negative:0.25 };
+      const s = id ? Store.state.subjects.find(x=>x.id===id) : { id:null, name:'', color:'#2563eb', defaultQuestions:25, timeLimit:15, marksPerQ:2, negative:0.5 };
       const m = UI.modal({
         title: id ? 'Edit Subject' : 'New Subject',
         body: `
