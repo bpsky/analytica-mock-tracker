@@ -1,39 +1,46 @@
 /* =============================================
-   Analytica Backup System v1.2
-   Local File + GitHub + Simple & Safe
+   Analytica Backup System v1.3 - Improved
+   Local File + GitHub + Beginner Friendly
    ============================================= */
 
 const BACKUP = {
   repo: "bpsky/analytica-mock-tracker",
   filename: "analytica-backup.json",
-  version: "1.2"
+  version: "1.3"
 };
 
+// Main Setup
 function setupBackupSystem() {
 
-  // Export to File
+  // ====================== EXPORT TO FILE ======================
   window.exportToFile = () => {
-    const data = Store.exportJSON ? Store.exportJSON() : JSON.stringify(Store.state, null, 2);
-    const backup = {
-      metadata: {
-        app: "analytica-mock-tracker",
-        version: BACKUP.version,
-        timestamp: new Date().toISOString()
-      },
-      data: typeof data === 'string' ? JSON.parse(data) : data
-    };
+    try {
+      const data = Store.exportJSON ? Store.exportJSON() : JSON.stringify(Store.state, null, 2);
+      
+      const backup = {
+        metadata: {
+          app: "analytica-mock-tracker",
+          version: BACKUP.version,
+          timestamp: new Date().toISOString()
+        },
+        data: typeof data === 'string' ? JSON.parse(data) : data
+      };
 
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = BACKUP.filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    UI.toast('✅ Backup downloaded successfully!', 'success');
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytica-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      UI.toast('✅ Backup downloaded successfully!', 'success');
+    } catch (e) {
+      UI.toast('❌ Export failed', 'error');
+    }
   };
 
-  // Import from File
+  // ====================== IMPORT FROM FILE ======================
   window.importFromFile = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -41,44 +48,54 @@ function setupBackupSystem() {
         const backup = JSON.parse(e.target.result);
         const dataToImport = backup.data || backup;
 
-        if (confirm("Import this backup? Current data will be merged.")) {
+        if (confirm(`Import this backup?\nDate: ${backup.metadata?.timestamp || 'Unknown'}\nThis will merge with current data.`)) {
           Store.importData(dataToImport, 'merge');
           UI.toast('✅ Import successful! Refreshing...', 'success');
-          setTimeout(() => location.reload(), 800);
+          setTimeout(() => location.reload(), 1000);
         }
       } catch (err) {
-        UI.toast('❌ Invalid backup file', 'error');
+        UI.toast('❌ Invalid or corrupted backup file', 'error');
       }
     };
     reader.readAsText(file);
   };
 
-  // Push to GitHub
+  // ====================== PUSH TO GITHUB ======================
   window.pushToGitHub = async () => {
     const token = localStorage.getItem('ghToken');
     if (!token) {
-      UI.toast('Please save GitHub token in Settings', 'error');
+      UI.toast('Please save your GitHub token in Settings first', 'error');
       Pages.nav('settings');
       return;
     }
 
-    UI.toast('Pushing backup...', 'info');
+    UI.toast('Pushing to GitHub...', 'info');
+
     try {
       const dataStr = Store.exportJSON ? Store.exportJSON() : JSON.stringify(Store.state, null, 2);
       const backup = {
-        metadata: { app: "analytica-mock-tracker", version: BACKUP.version, timestamp: new Date().toISOString() },
+        metadata: {
+          app: "analytica-mock-tracker",
+          version: BACKUP.version,
+          timestamp: new Date().toISOString()
+        },
         data: JSON.parse(dataStr)
       };
+
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(backup, null, 2))));
 
+      // Get current SHA if file exists
       let sha = null;
       try {
-        const res = await fetch(`https://api.github.com/repos/\( {BACKUP.repo}/contents/ \){BACKUP.filename}`, {
+        const getRes = await fetch(`https://api.github.com/repos/\( {BACKUP.repo}/contents/ \){BACKUP.filename}`, {
           headers: { Authorization: `token ${token}` }
         });
-        if (res.ok) sha = (await res.json()).sha;
+        if (getRes.ok) {
+          sha = (await getRes.json()).sha;
+        }
       } catch (_) {}
 
+      // Push / Update file
       const res = await fetch(`https://api.github.com/repos/\( {BACKUP.repo}/contents/ \){BACKUP.filename}`, {
         method: 'PUT',
         headers: {
@@ -86,47 +103,56 @@ function setupBackupSystem() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: `Analytica Backup ${new Date().toISOString()}`,
+          message: `Backup ${new Date().toISOString()}`,
           content: content,
           sha: sha
         })
       });
 
-      if (res.ok) UI.toast('✅ Backup pushed to GitHub!', 'success');
-      else throw new Error('GitHub error');
+      if (res.ok) {
+        UI.toast('✅ Successfully backed up to GitHub!', 'success');
+      } else {
+        const errorText = await res.text();
+        throw new Error(`GitHub error: ${res.status}`);
+      }
     } catch (e) {
+      console.error(e);
       UI.toast('❌ Push failed: ' + e.message, 'error');
     }
   };
 
-  // Pull from GitHub
+  // ====================== PULL FROM GITHUB ======================
   window.pullFromGitHub = async () => {
     const token = localStorage.getItem('ghToken');
-    if (!token) return UI.toast('No GitHub token', 'error');
+    if (!token) {
+      UI.toast('No GitHub token found', 'error');
+      return;
+    }
 
     UI.toast('Fetching from GitHub...', 'info');
+
     try {
       const res = await fetch(`https://api.github.com/repos/\( {BACKUP.repo}/contents/ \){BACKUP.filename}`, {
         headers: { Authorization: `token ${token}` }
       });
 
-      if (!res.ok) throw new Error("No backup found");
+      if (!res.ok) throw new Error("No backup found on GitHub");
 
       const file = await res.json();
       const backup = JSON.parse(atob(file.content));
       const data = backup.data || backup;
 
-      if (confirm("Import backup from GitHub?")) {
+      if (confirm(`Import backup from GitHub?\nDate: ${backup.metadata?.timestamp || 'Unknown'}`)) {
         Store.importData(data, 'merge');
-        UI.toast('✅ Imported from GitHub!', 'success');
-        setTimeout(() => location.reload(), 800);
+        UI.toast('✅ Successfully imported from GitHub!', 'success');
+        setTimeout(() => location.reload(), 1000);
       }
     } catch (e) {
       UI.toast('❌ ' + e.message, 'error');
     }
   };
 
-  // Override Settings page to show new backup UI
+  // ====================== SETTINGS UI ======================
   const oldSettings = Pages.settings;
   Pages.settings = function() {
     oldSettings.call(this);
@@ -149,39 +175,47 @@ function setupBackupSystem() {
         </div>
 
         <div class="field">
-          <label>GitHub Token <span class="text-red text-xs">(needed for cloud backup)</span></label>
-          <input type="password" id="ghToken" class="input" placeholder="ghp_xxxxxxxxxxxxxxxx" value="${localStorage.getItem('ghToken')||''}">
-          <p class="text-xs text-muted mt-1">⚠️ Token stays in your browser only. Use <b>repo</b> scope.</p>
+          <label>GitHub Personal Access Token <span class="text-red text-xs">(required for cloud)</span></label>
+          <input type="password" id="ghToken" class="input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxx" value="${localStorage.getItem('ghToken')||''}">
+          <p class="text-xs text-muted mt-1">Token is saved only in your browser. Needs <b>repo</b> permission.</p>
         </div>
         <button class="btn btn-sm" id="saveToken">Save Token</button>
       `;
 
       dataCard.parentNode.appendChild(backupSection);
 
-      // Button connections
+      // Attach button events
       document.getElementById('exportFileBtn').onclick = window.exportToFile;
       document.getElementById('importFileBtn').onclick = () => {
         let inp = document.getElementById('hiddenImport');
         if (!inp) {
           inp = document.createElement('input');
-          inp.type = 'file'; inp.id = 'hiddenImport'; inp.accept = '.json'; inp.style.display = 'none';
+          inp.type = 'file';
+          inp.id = 'hiddenImport';
+          inp.accept = '.json';
+          inp.style.display = 'none';
           document.body.appendChild(inp);
           inp.onchange = e => e.target.files[0] && window.importFromFile(e.target.files[0]);
         }
         inp.click();
       };
+
       document.getElementById('pushGitHubBtn').onclick = window.pushToGitHub;
       document.getElementById('pullGitHubBtn').onclick = window.pullFromGitHub;
+
       document.getElementById('saveToken').onclick = () => {
         const token = document.getElementById('ghToken').value.trim();
         if (token) {
           localStorage.setItem('ghToken', token);
-          UI.toast('Token saved!', 'success');
+          UI.toast('✅ Token saved successfully!', 'success');
+        } else {
+          UI.toast('Please enter a token', 'error');
         }
       };
     }, 300);
   };
 }
 
+// Initialize
 setupBackupSystem();
-console.log('✅ Backup System v1.2 loaded');
+console.log('✅ Improved Backup System v1.3 loaded successfully');
