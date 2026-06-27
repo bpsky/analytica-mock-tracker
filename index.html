@@ -2,12 +2,24 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<meta name="theme-color" content="#0a0a0a" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Analytica - Sectional Mock Tracker for competitive exams" />
+<meta name="theme-color" content="#ffffff" id="themeColorMeta" />
 <title>Analytica — Sectional Mock Tracker</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.330.0/font/lucide.min.css" />
+<link rel="preconnect" href="https://unpkg.com" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  (function() {
+    try {
+      const theme = localStorage.getItem('analytica.theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      const meta = document.getElementById('themeColorMeta');
+      if(meta) meta.content = theme === 'dark' ? '#0a0a0b' : '#ffffff';
+    } catch(e) {}
+  })();
+</script>
 <style>
 /* =========================================================
    DESIGN TOKENS
@@ -15,8 +27,8 @@
 :root {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  --font-size-base: 14px;
 
-  /* spacing scale */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px;  --s-4: 16px;
   --s-5: 20px; --s-6: 24px; --s-7: 32px;  --s-8: 40px;
 
@@ -32,7 +44,6 @@
   --dur: 180ms;
 }
 
-/* LIGHT */
 [data-theme="light"] {
   --c-bg: #fafaf9;
   --c-surface: #ffffff;
@@ -53,7 +64,6 @@
   --chart-text: #52525b;
 }
 
-/* DARK */
 [data-theme="dark"] {
   --c-bg: #0a0a0b;
   --c-surface: #111112;
@@ -78,7 +88,7 @@
 html, body { height: 100%; }
 body {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--c-text);
   background: var(--c-bg);
@@ -91,6 +101,20 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
 input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--c-blue); text-decoration: none; }
 
+:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+svg.lucide {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+  vertical-align: -0.125em;
+  display: inline-block;
+}
+
 /* =========================================================
    LAYOUT
 ========================================================= */
@@ -100,7 +124,6 @@ a { color: var(--c-blue); text-decoration: none; }
   min-height: 100vh;
 }
 
-/* SIDEBAR */
 .sidebar {
   position: sticky; top: 0;
   height: 100vh;
@@ -139,7 +162,6 @@ a { color: var(--c-blue); text-decoration: none; }
   color: var(--c-blue);
   font-weight: 600;
 }
-.nav-item i { font-size: 16px; }
 
 .sidebar-footer {
   margin-top: auto;
@@ -148,7 +170,6 @@ a { color: var(--c-blue); text-decoration: none; }
   font-size: 11px; color: var(--c-text-3);
 }
 
-/* MAIN */
 .main {
   display: flex; flex-direction: column;
   min-width: 0;
@@ -166,7 +187,6 @@ a { color: var(--c-blue); text-decoration: none; }
   font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
   display: flex; align-items: center; gap: var(--s-2);
 }
-.page-title i { color: var(--c-text-2); }
 .topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
 
 .content { padding: var(--s-6); max-width: 1400px; width: 100%; margin: 0 auto; }
@@ -186,7 +206,6 @@ a { color: var(--c-blue); text-decoration: none; }
 }
 .btn:hover { background: var(--c-surface-2); border-color: var(--c-border-strong); }
 .btn:active { transform: translateY(1px); }
-.btn i { font-size: 14px; }
 .btn-primary {
   background: var(--c-blue); color: #fff; border-color: var(--c-blue);
 }
@@ -196,7 +215,6 @@ a { color: var(--c-blue); text-decoration: none; }
 .btn-danger { color: var(--c-red); }
 .btn-danger:hover { background: var(--c-red-bg); border-color: var(--c-red-border); }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-sm i { font-size: 12px; }
 
 .chip {
   display: inline-flex; align-items: center; gap: 4px;
@@ -233,7 +251,6 @@ a { color: var(--c-blue); text-decoration: none; }
   font-size: 13px; font-weight: 600; letter-spacing: -0.005em;
   display: flex; align-items: center; gap: 8px;
 }
-.card-title i { color: var(--c-text-2); font-size: 14px; }
 
 .grid { display: grid; gap: var(--s-4); }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -255,7 +272,7 @@ a { color: var(--c-blue); text-decoration: none; }
   letter-spacing: 0.04em;
   display: flex; align-items: center; gap: 6px;
 }
-.kpi-label i { font-size: 12px; color: var(--c-blue); }
+.kpi-label svg { color: var(--c-blue); }
 .kpi-value {
   font-size: 24px; font-weight: 700;
   letter-spacing: -0.02em;
@@ -272,7 +289,7 @@ a { color: var(--c-blue); text-decoration: none; }
 /* FORMS */
 .field {
   display: flex; flex-direction: column; gap: 6px;
-  margin-bottom: var(--s-4);
+  margin-bottom: var(--s-3);
 }
 .field label {
   font-size: 12px; font-weight: 500; color: var(--c-text-2);
@@ -281,11 +298,11 @@ a { color: var(--c-blue); text-decoration: none; }
 .field .hint { font-size: 11px; color: var(--c-text-3); }
 .input, .select, .textarea {
   width: 100%;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border: var(--border);
   background: var(--c-surface);
   border-radius: var(--radius);
-  font-size: 13.5px;
+  font-size: 13px;
   transition: all var(--dur) var(--ease);
 }
 .input:focus, .select:focus, .textarea:focus {
@@ -293,12 +310,19 @@ a { color: var(--c-blue); text-decoration: none; }
   border-color: var(--c-blue);
   box-shadow: 0 0 0 3px var(--c-blue-bg);
 }
-.textarea { resize: vertical; min-height: 72px; font-family: inherit; }
+.textarea { resize: vertical; min-height: 60px; font-family: inherit; }
 .select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 .readonly {
   background: var(--c-surface-2); color: var(--c-text-2);
   cursor: default;
 }
+
+/* COMPACT FORM */
+.form-compact .field { margin-bottom: var(--s-2); }
+.form-compact .input, .form-compact .select, .form-compact .textarea { padding: 6px 8px; font-size: 12.5px; }
+.form-compact .grid { gap: var(--s-2); }
+.form-compact .card { padding: var(--s-3); }
+.form-compact .card-title { margin-bottom: var(--s-2); }
 
 /* TABLE */
 .table-wrap { overflow-x: auto; border: var(--border); border-radius: var(--radius); background: var(--c-surface); }
@@ -322,6 +346,7 @@ tbody td {
 }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: var(--c-surface-2); }
+tbody tr[data-clickable] { cursor: pointer; }
 
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -409,11 +434,10 @@ tbody tr:hover { background: var(--c-surface-2); }
 .toast.success { border-left-color: var(--c-green); }
 .toast.error { border-left-color: var(--c-red); }
 .toast.warn { border-left-color: var(--c-amber); }
-.toast i { font-size: 16px; margin-top: 1px; }
-.toast.success i { color: var(--c-green); }
-.toast.error i { color: var(--c-red); }
-.toast.warn i { color: var(--c-amber); }
-.toast.info i { color: var(--c-blue); }
+.toast.success svg { color: var(--c-green); }
+.toast.error svg { color: var(--c-red); }
+.toast.warn svg { color: var(--c-amber); }
+.toast.info svg { color: var(--c-blue); }
 @keyframes slideIn { from {opacity: 0; transform: translateX(20px)} to {opacity: 1; transform: none} }
 
 /* FAB */
@@ -428,9 +452,9 @@ tbody tr:hover { background: var(--c-surface-2); }
   transition: transform var(--dur) var(--ease);
 }
 .fab:hover { transform: scale(1.05); }
-.fab i { font-size: 22px; }
+.fab svg { font-size: 22px; width: 22px; height: 22px; }
 
-/* BOTTOM NAV (mobile) */
+/* BOTTOM NAV */
 .bottomnav {
   display: none;
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -449,7 +473,7 @@ tbody tr:hover { background: var(--c-surface-2); }
   border-radius: 8px;
   transition: all var(--dur) var(--ease);
 }
-.bottomnav button i { font-size: 18px; }
+.bottomnav button svg { font-size: 18px; width: 18px; height: 18px; }
 .bottomnav button.active { color: var(--c-blue); }
 
 /* INSIGHT CARD */
@@ -461,7 +485,6 @@ tbody tr:hover { background: var(--c-surface-2); }
   font-size: 13px;
   display: flex; gap: 8px; align-items: flex-start;
 }
-.insight i { margin-top: 2px; }
 .insight strong { font-weight: 600; }
 
 /* EMPTY STATE */
@@ -470,7 +493,7 @@ tbody tr:hover { background: var(--c-surface-2); }
   padding: var(--s-8) var(--s-4);
   color: var(--c-text-3);
 }
-.empty i { font-size: 40px; margin-bottom: var(--s-3); color: var(--c-text-3); }
+.empty svg { font-size: 40px; width: 40px; height: 40px; margin-bottom: var(--s-3); color: var(--c-text-3); }
 .empty-title { color: var(--c-text); font-weight: 600; font-size: 15px; margin-bottom: 6px; }
 .empty-sub { font-size: 13px; }
 
@@ -485,6 +508,152 @@ tbody tr:hover { background: var(--c-surface-2); }
 }
 .streak-dot.active { background: var(--c-green); }
 .streak-dot.current { background: var(--c-blue); }
+
+/* TEST DETAIL */
+.detail-section {
+  margin-bottom: var(--s-5);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s-3);
+}
+.detail-item {
+  padding: var(--s-3);
+  background: var(--c-surface-2);
+  border-radius: var(--radius);
+  border: var(--border);
+}
+.detail-item-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text-3);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.detail-item-value {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.detail-notes {
+  padding: var(--s-3);
+  background: var(--c-surface-2);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--c-blue);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* HISTORY FILTERS - MOBILE OPTIMIZED */
+.history-filters {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.history-filters > * {
+  flex-shrink: 0;
+}
+.history-filters .select {
+  min-width: 120px;
+  max-width: 160px;
+  padding: 6px 28px 6px 8px;
+  font-size: 12px;
+}
+.history-filters .input-search {
+  min-width: 160px;
+  max-width: 200px;
+  padding: 6px 8px 6px 28px;
+  font-size: 12px;
+}
+
+/* HISTORY VIEWS */
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s-3);
+}
+.history-card {
+  background: var(--c-surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: var(--s-4);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.history-card:hover {
+  border-color: var(--c-blue-border);
+  box-shadow: var(--shadow);
+}
+.history-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  margin-bottom: var(--s-2);
+}
+.history-list-item:hover {
+  border-color: var(--c-blue-border);
+  background: var(--c-surface-2);
+}
+
+/* SETTINGS SECTION */
+.settings-section {
+  margin-bottom: var(--s-5);
+}
+.settings-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--s-3);
+}
+.setting-item {
+  padding: var(--s-3);
+  background: var(--c-surface-2);
+  border-radius: var(--radius);
+  border: var(--border);
+}
+.setting-item-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-2);
+  margin-bottom: var(--s-2);
+}
+
+/* TOPIC MANAGER */
+.topic-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: var(--s-2);
+  background: var(--c-surface-2);
+}
+.topic-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2);
+  border-bottom: var(--border);
+}
+.topic-item:last-child { border-bottom: none; }
+.topic-item input {
+  flex: 1;
+  padding: 4px 8px;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  font-size: 12px;
+}
 
 /* =========================================================
    MOBILE
@@ -501,6 +670,24 @@ tbody tr:hover { background: var(--c-surface-2); }
   .grid-2 { grid-template-columns: 1fr; }
   .kpi-value { font-size: 20px; }
   .page-title { font-size: 15px; }
+  
+  .history-filters {
+    gap: var(--s-1);
+  }
+  .history-filters .select,
+  .history-filters .input-search {
+    min-width: 100px;
+    font-size: 11px;
+    padding: 5px 24px 5px 6px;
+  }
+  .history-filters .input-search {
+    padding-left: 24px;
+    min-width: 120px;
+  }
+  
+  .detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* =========================================================
@@ -535,7 +722,6 @@ tbody tr:hover { background: var(--c-surface-2); }
 .w-full { width: 100%; }
 .hidden { display: none !important; }
 
-/* SKELETON */
 .skeleton {
   background: linear-gradient(90deg, var(--c-surface-2) 25%, var(--c-surface-3) 50%, var(--c-surface-2) 75%);
   background-size: 200% 100%;
@@ -544,7 +730,6 @@ tbody tr:hover { background: var(--c-surface-2); }
 }
 @keyframes shimmer { 0% {background-position: 200% 0} 100% {background-position: -200% 0} }
 
-/* SCROLLBAR */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--c-border-strong); border-radius: 4px; }
@@ -554,74 +739,59 @@ tbody tr:hover { background: var(--c-surface-2); }
 <body>
 
 <div class="app">
-  <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-logo">A</div>
       <div>
-        <div class="brand-name">Analytica</div>
+        <h1 class="brand-name">Analytica</h1>
         <div class="brand-sub">Mock Tracker v1.0</div>
       </div>
     </div>
-    <button class="nav-item active" data-nav="dashboard"><i class="i-home"></i>Dashboard</button>
-    <button class="nav-item" data-nav="add"><i class="i-edit-3"></i>Add Test</button>
-    <button class="nav-item" data-nav="history"><i class="i-history"></i>History</button>
-    <button class="nav-item" data-nav="analytics"><i class="i-bar-chart-3"></i>Analytics</button>
-    <button class="nav-item" data-nav="revision"><i class="i-book-open"></i>Revision</button>
-    <button class="nav-item" data-nav="settings"><i class="i-settings"></i>Settings</button>
+    <button class="nav-item active" data-nav="dashboard" aria-label="Dashboard"><i data-lucide="home"></i>Dashboard</button>
+    <button class="nav-item" data-nav="history" aria-label="History"><i data-lucide="history"></i>History</button>
+    <button class="nav-item" data-nav="analytics" aria-label="Analytics"><i data-lucide="bar-chart-3"></i>Analytics</button>
+    <button class="nav-item" data-nav="revision" aria-label="Revision"><i data-lucide="book-open"></i>Revision</button>
+    <button class="nav-item" data-nav="settings" aria-label="Settings"><i data-lucide="settings"></i>Settings</button>
     <div class="sidebar-footer">
       <div id="storageInfo">Storage: —</div>
       <div class="mt-2">Offline-ready • Local</div>
     </div>
   </aside>
 
-  <!-- ============ MAIN ============ -->
   <main class="main">
     <header class="topbar">
-      <div class="page-title" id="pageTitle"><i class="i-home"></i>Dashboard</div>
+      <h2 class="page-title" id="pageTitle"><i data-lucide="home"></i>Dashboard</h2>
       <div class="topbar-actions">
         <div class="chip-group" id="globalFilterChips" style="display:none"></div>
-        <button class="btn btn-sm btn-ghost" id="themeToggle" title="Toggle theme">
-          <i class="i-moon"></i>
+        <button class="btn btn-sm btn-ghost" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+          <i data-lucide="moon"></i>
         </button>
       </div>
     </header>
 
-    <section class="content" id="pageContent">
-      <!-- injected dynamically -->
-    </section>
+    <section class="content" id="pageContent"></section>
   </main>
 </div>
 
-<!-- ============ BOTTOM NAV (mobile) ============ -->
 <nav class="bottomnav">
-  <button class="active" data-nav="dashboard"><i class="i-home"></i><span>Home</span></button>
-  <button data-nav="add"><i class="i-edit-3"></i><span>Add</span></button>
-  <button data-nav="history"><i class="i-history"></i><span>History</span></button>
-  <button data-nav="analytics"><i class="i-bar-chart-3"></i><span>Stats</span></button>
-  <button data-nav="settings"><i class="i-settings"></i><span>More</span></button>
+  <button class="active" data-nav="dashboard" aria-label="Home"><i data-lucide="home"></i><span>Home</span></button>
+  <button data-nav="history" aria-label="History"><i data-lucide="history"></i><span>History</span></button>
+  <button data-nav="analytics" aria-label="Stats"><i data-lucide="bar-chart-3"></i><span>Stats</span></button>
+  <button data-nav="settings" aria-label="Settings"><i data-lucide="settings"></i><span>Settings</span></button>
 </nav>
 
-<!-- FAB -->
-<button class="fab" id="fab" title="Add test">+</button>
+<button class="fab" id="fab" title="Add test" aria-label="Add test"><i data-lucide="plus"></i></button>
 
-<!-- Modal root -->
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modal"></div>
+  <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
 </div>
 
-<!-- Toast root -->
-<div class="toasts" id="toasts"></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
 <script>
 /* =========================================================
-   ANALYTICA — SECTIONAL MOCK TRACKER
-   Modular architecture: Store, UI, Charts, Analytics, App
+   STORE
 ========================================================= */
-
-/* ---------------------------------------------------------
-   STORE — data management
---------------------------------------------------------- */
 const Store = (() => {
   const KEY = 'analytica.v1';
 
@@ -646,7 +816,9 @@ const Store = (() => {
     marksPerQ: 2,
     negative: 0.5,
     lastBackup: null,
-    backupReminder: 7, // days
+    backupReminder: 7,
+    textSize: 14,
+    historyView: 'table',
   };
 
   function seed() {
@@ -663,7 +835,6 @@ const Store = (() => {
       const raw = localStorage.getItem(KEY);
       if (!raw) { const s = seed(); save(s); return s; }
       const data = JSON.parse(raw);
-      // migration guard
       data.settings = { ...DEFAULT_SETTINGS, ...(data.settings||{}) };
       data.subjects = data.subjects || JSON.parse(JSON.stringify(DEFAULT_SUBJECTS));
       data.errorTags = data.errorTags || [...DEFAULT_ERROR_TAGS];
@@ -750,12 +921,10 @@ const Store = (() => {
     },
     importData(data, mode='merge') {
       try {
-        // basic validation
         if (!data || !Array.isArray(data.tests)) throw new Error('Invalid data format');
         if (mode === 'overwrite') {
           state = { ...seed(), ...data };
         } else if (mode === 'merge') {
-          // merge: add tests by id if not exist, else skip
           const ids = new Set(state.tests.map(t => t.id));
           for (const t of data.tests) {
             if (!ids.has(t.id)) state.tests.unshift(t);
@@ -777,40 +946,35 @@ const Store = (() => {
       save(state);
     },
     exportJSON() { return JSON.stringify(state, null, 2); },
-    exportCSV() {
-      const headers = ['id','date','name','subject','difficulty','source','totalQ','timeLimit','attempted','wrong','correct','marks','accuracy','attemptPct','negative','tpq','tpc','errorTypes','topics','notes'];
-      const rows = [headers.join(',')];
-      for (const t of state.tests) {
-        rows.push([
-          t.id, t.date, esc(t.name||''), t.subject, t.difficulty||'', esc(t.source||''),
-          t.totalQuestions, t.timeLimit, t.attempted, t.wrong, t.correct,
-          t.marks, t.accuracy, t.attemptPct, t.negativeMarks,
-          (t.timePerQ||0).toFixed(2), (t.timePerCorrect||0).toFixed(2),
-          esc((t.errorTypes||[]).join(';')),
-          esc((t.topics||[]).join(';')),
-          esc(t.notes||'')
-        ].join(','));
-      }
-      return rows.join('\n');
-      function esc(s) { s = String(s ?? ''); return s.includes(',')||s.includes('"')||s.includes('\n') ? '"'+s.replace(/"/g,'""')+'"' : s; }
-    },
   };
 })();
 
-/* ---------------------------------------------------------
-   UI — rendering
---------------------------------------------------------- */
+/* =========================================================
+   UI
+========================================================= */
 const UI = (() => {
   const el = id => document.getElementById(id);
   const page = el('pageContent');
   const toasts = el('toasts');
 
+  function escape(str) {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function renderIcons() {
+    if (window.lucide) window.lucide.createIcons();
+  }
+
   function toast(msg, type='info') {
     const t = document.createElement('div');
     t.className = 'toast ' + type;
-    const icons = { info:'i-info', success:'i-check-circle', error:'i-alert-circle', warn:'i-alert-triangle' };
-    t.innerHTML = `<i class="${icons[type]||'i-info'}"></i><span>${msg}</span>`;
+    const icons = { info:'info', success:'check-circle', error:'alert-circle', warn:'alert-triangle' };
+    t.innerHTML = `<i data-lucide="${icons[type]||'info'}"></i><span>${escape(msg)}</span>`;
     toasts.appendChild(t);
+    renderIcons();
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 200ms'; }, 3000);
     setTimeout(() => t.remove(), 3300);
   }
@@ -820,13 +984,14 @@ const UI = (() => {
     const o = el('modalOverlay');
     m.innerHTML = `
       <div class="modal-header">
-        <div class="modal-title">${title}</div>
-        <button class="btn btn-sm btn-ghost" data-close><i class="i-x"></i></button>
+        <h3 class="modal-title">${escape(title)}</h3>
+        <button class="btn btn-sm btn-ghost" data-close aria-label="Close"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-body">${body}</div>
       ${footer ? `<div class="modal-footer">${footer}</div>` : ''}
     `;
     o.classList.add('open');
+    renderIcons();
     const close = () => { o.classList.remove('open'); if (onClose) onClose(); };
     m.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
     o.onclick = e => { if (e.target === o) close(); };
@@ -836,11 +1001,23 @@ const UI = (() => {
   function confirm({title, message, onOk, okLabel='Confirm', danger=false}) {
     modal({
       title,
-      body: `<p class="text-sm text-muted">${message}</p>`,
-      footer: `<button class="btn btn-sm" data-close>Cancel</button><button class="btn btn-sm ${danger?'btn-primary btn-danger':'btn-primary'}" data-ok>${okLabel}</button>`,
-    }).root.querySelector('[data-ok]').onclick = () => {
+      body: `<p class="text-sm text-muted">${escape(message)}</p>`
+    }).root.querySelector('[data-close]').onclick = () => {
+      el('modalOverlay').classList.remove('open');
+    };
+    const m = el('modal');
+    const footerDiv = document.createElement('div');
+    footerDiv.className = 'modal-footer';
+    footerDiv.innerHTML = `<button class="btn btn-sm" data-close>Cancel</button><button class="btn btn-sm ${danger?'btn-primary btn-danger':'btn-primary'}" data-ok>${escape(okLabel)}</button>`;
+    m.appendChild(footerDiv);
+    renderIcons();
+    
+    footerDiv.querySelector('[data-ok]').onclick = () => {
       el('modalOverlay').classList.remove('open');
       onOk && onOk();
+    };
+    footerDiv.querySelector('[data-close]').onclick = () => {
+      el('modalOverlay').classList.remove('open');
     };
   }
 
@@ -858,8 +1035,6 @@ const UI = (() => {
     if (isNaN(d)) return ts;
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
-  function minsToDate(isoDate) { return isoDate; }
-  function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
 
   function subjectColor(id) {
     const s = Store.state.subjects.find(s => s.id === id);
@@ -871,13 +1046,14 @@ const UI = (() => {
   }
 
   function setPageTitle(icon, title) {
-    el('pageTitle').innerHTML = `<i class="i-${icon}"></i>${title}`;
+    el('pageTitle').innerHTML = `<i data-lucide="${icon}"></i>${escape(title)}`;
+    renderIcons();
   }
 
   function kpi(label, value, sub, icon='trending-up', trend) {
     const trendClass = trend === 'up' ? 'kpi-trend-up' : (trend === 'down' ? 'kpi-trend-down' : '');
     return `<div class="kpi">
-      <div class="kpi-label"><i class="i-${icon}"></i>${label}</div>
+      <div class="kpi-label"><i data-lucide="${icon}"></i>${escape(label)}</div>
       <div class="kpi-value">${value}</div>
       <div class="kpi-sub ${trendClass}">${sub||''}</div>
     </div>`;
@@ -885,22 +1061,26 @@ const UI = (() => {
 
   function emptyState({icon='inbox', title, sub, action}) {
     return `<div class="empty">
-      <i class="i-${icon}"></i>
-      <div class="empty-title">${title}</div>
-      <div class="empty-sub">${sub||''}</div>
+      <i data-lucide="${icon}"></i>
+      <div class="empty-title">${escape(title)}</div>
+      <div class="empty-sub">${escape(sub)||''}</div>
       ${action ? `<div class="mt-4">${action}</div>` : ''}
     </div>`;
   }
 
-  return { el, toast, modal, confirm, fmt, fmtDate, fmtDateShort, subjectColor, subjectName, setPageTitle, kpi, emptyState, page };
+  function applyTextSize() {
+    const size = Store.state.settings.textSize || 14;
+    document.documentElement.style.setProperty('--font-size-base', size + 'px');
+  }
+
+  return { el, toast, modal, confirm, fmt, fmtDate, fmtDateShort, subjectColor, subjectName, setPageTitle, kpi, emptyState, page, escape, renderIcons, applyTextSize };
 })();
 
-/* ---------------------------------------------------------
-   ANALYTICS — calculations
---------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS
+========================================================= */
 const Analytics = (() => {
   const tests = () => Store.state.tests;
-
   const bySubject = (subjectId) => subjectId === 'all' ? tests() : tests().filter(t => t.subject === subjectId);
 
   function stats(subjectId='all') {
@@ -937,7 +1117,7 @@ const Analytics = (() => {
   function subjectComparison() {
     return Store.state.subjects.map(s => {
       const st = stats(s.id);
-      return { name: s.name, color: s.color, ...st, avgMarks: st?.avgMarks || 0, avgAccuracy: st?.avgAccuracy || 0, count: st?.count || 0 };
+      return { name: s.name, color: s.color, id: s.id, ...st, avgMarks: st?.avgMarks || 0, avgAccuracy: st?.avgAccuracy || 0, count: st?.count || 0 };
     });
   }
 
@@ -991,48 +1171,6 @@ const Analytics = (() => {
     return [...map.values()].sort((a,b)=>a.key.localeCompare(b.key));
   }
 
-  function streak() {
-    // streak of consecutive days with at least one test
-    const dates = [...new Set(tests().map(t => t.date.split('T')[0]))].sort();
-    if (!dates.length) return 0;
-    let current = 0;
-    let today = new Date(); today.setHours(0,0,0,0);
-    let cursor = new Date(today);
-    const dateSet = new Set(dates);
-    for (let i = 0; i < 365; i++) {
-      const key = cursor.toISOString().split('T')[0];
-      if (dateSet.has(key)) { current++; }
-      else {
-        if (i === 0) { cursor.setDate(cursor.getDate()-1); continue; } // today empty, check yesterday start
-        break;
-      }
-      cursor.setDate(cursor.getDate()-1);
-    }
-    return current;
-  }
-
-  function lastNDays(n=7) {
-    const res = [];
-    const today = new Date(); today.setHours(0,0,0,0);
-    for (let i = n-1; i >= 0; i--) {
-      const d = new Date(today); d.setDate(d.getDate()-i);
-      res.push(d.toISOString().split('T')[0]);
-    }
-    return res;
-  }
-  function activitySparkline() {
-    const days = lastNDays(14);
-    const set = new Set(tests().map(t => t.date.split('T')[0]));
-    return days.map(d => ({ d, v: set.has(d) ? 1 : 0 }));
-  }
-
-  function improvement(subjectId='all') {
-    const trend = performanceTrend(subjectId);
-    if (trend.length < 2) return null;
-    const first = trend[0].marks, last = trend[trend.length-1].marks;
-    return { delta: last - first, pct: first ? ((last-first)/first)*100 : 0 };
-  }
-
   function generateInsights(subjectId='all') {
     const st = stats(subjectId);
     const insights = [];
@@ -1043,23 +1181,22 @@ const Analytics = (() => {
     const strong = strongTopics(subjectId);
 
     if (trend.length >= 2) {
-      const imp = improvement(subjectId);
-      if (imp && imp.delta > 0) insights.push({icon:'trending-up', tone:'good', text:`<strong>${UI.fmt(imp.delta,1)} pts</strong> improvement from first to latest test.`});
-      if (imp && imp.delta < 0) insights.push({icon:'trending-down', tone:'warn', text:`Score declined by <strong>${UI.fmt(Math.abs(imp.delta),1)} pts</strong> — review recent attempts.`});
+      const first = trend[0].marks, last = trend[trend.length-1].marks;
+      const delta = last - first;
+      if (delta > 0) insights.push({icon:'trending-up', tone:'good', text:`<strong>${UI.fmt(delta,1)} pts</strong> improvement from first to latest test.`});
+      if (delta < 0) insights.push({icon:'trending-down', tone:'warn', text:`Score declined by <strong>${UI.fmt(Math.abs(delta),1)} pts</strong> — review recent attempts.`});
     }
     if (st.avgAccuracy < 60) insights.push({icon:'target', tone:'warn', text:`Average accuracy is <strong>${UI.fmt(st.avgAccuracy,1)}%</strong> — aim for 70%+ for safe attempts.`});
     else insights.push({icon:'check-circle', tone:'good', text:`Strong accuracy at <strong>${UI.fmt(st.avgAccuracy,1)}%</strong>.`});
-    if (errDist.length) insights.push({icon:'alert-triangle', tone:'warn', text:`Most common error: <strong>${errDist[0].label}</strong> (${errDist[0].value}×).`});
-    if (weak.length) insights.push({icon:'book-open', tone:'warn', text:`Focus revision on <strong>${weak[0].topic}</strong> (${UI.fmt(weak[0].avgAccuracy,0)}% accuracy).`});
-    if (strong.length) insights.push({icon:'award', tone:'good', text:`Strength: <strong>${strong[0].topic}</strong> with ${UI.fmt(strong[0].avgAccuracy,0)}% accuracy.`});
+    if (errDist.length) insights.push({icon:'alert-triangle', tone:'warn', text:`Most common error: <strong>${UI.escape(errDist[0].label)}</strong> (${errDist[0].value}×).`});
+    if (weak.length) insights.push({icon:'book-open', tone:'warn', text:`Focus revision on <strong>${UI.escape(weak[0].topic)}</strong> (${UI.fmt(weak[0].avgAccuracy,0)}% accuracy).`});
+    if (strong.length) insights.push({icon:'award', tone:'good', text:`Strength: <strong>${UI.escape(strong[0].topic)}</strong> with ${UI.fmt(strong[0].avgAccuracy,0)}% accuracy.`});
 
-    // revision recommendation
     const topicByWeak = topicStats(subjectId).sort((a,b)=>a.avgAccuracy-b.avgAccuracy);
     if (topicByWeak.length) {
-      insights.push({icon:'calendar', tone:'info', text:`Today's revision priority: <strong>${topicByWeak.slice(0,3).map(t=>t.topic).join(', ')}</strong>.`});
+      insights.push({icon:'calendar', tone:'info', text:`Today's revision priority: <strong>${topicByWeak.slice(0,3).map(t=>UI.escape(t.topic)).join(', ')}</strong>.`});
     }
 
-    // readiness estimate
     if (st.count >= 5) {
       const readiness = Math.min(100, st.avgAccuracy*0.5 + st.avgAttemptPct*0.3 + Math.min(20, st.count*1));
       insights.push({icon:'zap', tone:'info', text:`Estimated readiness: <strong>${UI.fmt(readiness,0)}/100</strong>.`});
@@ -1089,12 +1226,12 @@ const Analytics = (() => {
     };
   }
 
-  return { stats, subjectComparison, topicStats, weakTopics, strongTopics, errorDistribution, performanceTrend, monthlyActivity, streak, activitySparkline, improvement, generateInsights, predict, bySubject };
+  return { stats, subjectComparison, topicStats, weakTopics, strongTopics, errorDistribution, performanceTrend, monthlyActivity, generateInsights, predict, bySubject };
 })();
 
-/* ---------------------------------------------------------
-   CHARTS — Chart.js wrapper with theme support
---------------------------------------------------------- */
+/* =========================================================
+   CHARTS
+========================================================= */
 const Charts = (() => {
   let instances = new Map();
 
@@ -1266,41 +1403,45 @@ const Charts = (() => {
     [...instances.keys()].forEach(destroy);
   }
 
-  function refreshTheme() {
-    // re-render all instances is complex; callers handle this
-  }
-
   return { line, bar, doughnut, radar, stackedBar, exportPNG, exportAll, destroyAll, themeColors };
 })();
 
-/* ---------------------------------------------------------
-   PAGES
---------------------------------------------------------- */
+/* =========================================================
+   PAGES - Part 1: Dashboard, Add Test, Test Detail
+========================================================= */
 const Pages = (() => {
 
   /* ---------------- DASHBOARD ---------------- */
   function dashboard() {
     UI.setPageTitle('home','Dashboard');
     const st = Analytics.stats('all');
-    const streak = Analytics.streak();
-    const spark = Analytics.activitySparkline();
     const insights = Analytics.generateInsights('all');
     const sc = Analytics.subjectComparison();
     const recent = [...Store.state.tests].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-    const totalMin = st?.totalStudyMin || 0;
-    const hrs = Math.floor(totalMin/60), mins = totalMin%60;
-
-    // subject best/worst
-    let strongest = null, weakest = null;
-    if (sc.length) {
-      const withData = sc.filter(s => s.count > 0);
-      if (withData.length) {
-        strongest = withData.reduce((a,b)=>(a.avgAccuracy||0)>(b.avgAccuracy||0)?a:b);
-        weakest = withData.reduce((a,b)=>(a.avgAccuracy||0)<(b.avgAccuracy||0)?a:b);
-      }
-    }
 
     UI.page.innerHTML = `
+      <!-- SUBJECT OVERVIEW AT TOP -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title"><i data-lucide="users"></i>Subject Overview</h3>
+          <button class="btn btn-sm" id="viewAllAnalytics"><i data-lucide="arrow-right"></i>View All</button>
+        </div>
+        ${sc.length ? sc.map(s => `
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <div class="flex items-center gap-2" style="min-width: 0;">
+              <div style="width:10px; height:10px; border-radius:2px; background:${s.color};"></div>
+              <div class="font-medium truncate">${UI.escape(s.name)}</div>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <span class="text-muted">${s.count||0} tests</span>
+              <span class="font-bold font-mono" style="min-width: 50px; text-align:right;">${UI.fmt(s.avgAccuracy||0,0)}%</span>
+            </div>
+          </div>
+          <div class="progress mb-4"><div class="progress-bar" style="width:${s.avgAccuracy||0}%; background:${s.color};"></div></div>
+        `).join('') : '<div class="text-sm text-muted">No subjects yet.</div>'}
+      </div>
+
+      <!-- KPIs (Removed: Best, Lowest, Streak, Study Time) -->
       <div class="grid grid-4 mb-4">
         ${UI.kpi('Total Tests', st?.count || 0, 'Sectional attempts', 'bar-chart-3')}
         ${UI.kpi('Avg Score', UI.fmt(st?.avgMarks||0,1), `of ${st?.bestScore?UI.fmt(st.bestScore,0):'—'} best`, 'target', st && st.avgMarks>0?'up':'')}
@@ -1308,83 +1449,47 @@ const Pages = (() => {
         ${UI.kpi('Questions Solved', UI.fmt(st?.attempted||0), `${UI.fmt(st?.totalQ||0)} total`, 'hash')}
       </div>
 
-      <div class="grid grid-4 mb-4">
-        ${UI.kpi('Current Streak', streak, streak>0?'Keep going!':'Take a test today', 'flame')}
-        ${UI.kpi('Study Time', hrs+'h '+mins+'m', `Across ${st?.count||0} tests`, 'clock')}
-        ${UI.kpi('Best Score', UI.fmt(st?.bestScore||0,1), st?.bestTest?UI.fmtDateShort(st.bestTest.date):'', 'award')}
-        ${UI.kpi('Lowest Score', UI.fmt(st?.worstScore||0,1), st?.worstTest?UI.fmtDateShort(st.worstTest.date):'', 'trending-down')}
-      </div>
-
-      <div class="grid grid-2 mb-4">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="i-activity"></i>Recent Activity (14 days)</div>
-            <button class="btn btn-sm btn-ghost" onclick="Pages.nav('add')"><i class="i-plus"></i>Add test</button>
-          </div>
-          <div class="streak" id="activitySpark">
-            ${spark.map(s => `<div class="streak-dot ${s.v?'active':''}" title="${s.d}"></div>`).join('')}
-          </div>
-          <div class="text-xs text-muted mt-4">${spark.filter(s=>s.v).length} of 14 days active</div>
+      <!-- AI INSIGHTS -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title"><i data-lucide="lightbulb"></i>AI Insights</h3>
         </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="i-lightbulb"></i>AI Insights</div>
-          </div>
-          <div class="flex flex-col gap-2">
-            ${insights.length ? insights.slice(0,4).map(i => `<div class="insight"><i class="i-${i.icon} ${i.tone==='good'?'text-green':i.tone==='warn'?'text-amber':'text-blue'}"></i><div>${i.text}</div></div>`).join('') : UI.emptyState({icon:'sparkles',title:'Not enough data', sub:'Add a few tests to unlock insights.'})}
-          </div>
+        <div class="flex flex-col gap-2">
+          ${insights.length ? insights.slice(0,4).map(i => `<div class="insight"><i data-lucide="${i.icon}" class="${i.tone==='good'?'text-green':i.tone==='warn'?'text-amber':'text-blue'}"></i><div>${i.text}</div></div>`).join('') : UI.emptyState({icon:'sparkles',title:'Not enough data', sub:'Add a few tests to unlock insights.'})}
         </div>
       </div>
 
-      <div class="grid grid-2 mb-4">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="i-users"></i>Subject Overview</div>
-            <button class="btn btn-sm" onclick="Pages.nav('analytics')"><i class="i-arrow-right"></i>View all</button>
-          </div>
-          ${sc.length ? sc.map(s => `
-            <div class="flex items-center justify-between gap-3 mb-2">
-              <div class="flex items-center gap-2" style="min-width: 0;">
-                <div style="width:10px; height:10px; border-radius:2px; background:${s.color};"></div>
-                <div class="font-medium truncate">${s.name}</div>
-              </div>
-              <div class="flex items-center gap-3 text-sm">
-                <span class="text-muted">${s.count||0} tests</span>
-                <span class="font-bold font-mono" style="min-width: 50px; text-align:right;">${UI.fmt(s.avgAccuracy||0,0)}%</span>
-              </div>
+      <!-- RECENT TESTS -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i data-lucide="history"></i>Recent Tests</h3>
+        </div>
+        ${recent.length ? recent.map(t => `
+          <div class="flex items-center justify-between mb-2 test-clickable" data-test-id="${t.id}" style="padding:8px 0; border-bottom: var(--border); cursor: pointer;">
+            <div>
+              <div class="font-medium text-sm truncate" style="max-width: 200px;">${UI.escape(t.name) || UI.escape(UI.subjectName(t.subject))}</div>
+              <div class="text-xs text-muted">${UI.escape(UI.subjectName(t.subject))} • ${UI.fmtDateShort(t.date)}</div>
             </div>
-            <div class="progress mb-4"><div class="progress-bar" style="width:${s.avgAccuracy||0}%; background:${s.color};"></div></div>
-          `).join('') : '<div class="text-sm text-muted">No subjects yet.</div>'}
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="i-history"></i>Recent Tests</div>
-          </div>
-          ${recent.length ? recent.map(t => `
-            <div class="flex items-center justify-between mb-2" style="padding:8px 0; border-bottom: var(--border);">
-              <div>
-                <div class="font-medium text-sm truncate" style="max-width: 200px;">${t.name || UI.subjectName(t.subject)}</div>
-                <div class="text-xs text-muted">${UI.subjectName(t.subject)} • ${UI.fmtDateShort(t.date)}</div>
-              </div>
-              <div class="text-right">
-                <div class="font-bold font-mono">${UI.fmt(t.marks,1)}</div>
-                <div class="text-xs ${t.accuracy>=65?'text-green':t.accuracy>=50?'text-amber':'text-red'}">${UI.fmt(t.accuracy,0)}%</div>
-              </div>
+            <div class="text-right">
+              <div class="font-bold font-mono">${UI.fmt(t.marks,1)}</div>
+              <div class="text-xs ${t.accuracy>=65?'text-green':t.accuracy>=50?'text-amber':'text-red'}">${UI.fmt(t.accuracy,0)}%</div>
             </div>
-          `).join('') : UI.emptyState({icon:'inbox', title:'No tests yet', sub:'Click + to add your first test.', action:'<button class="btn btn-sm btn-primary" onclick="Pages.nav(\'add\')">Add Test</button>'})}
-        </div>
-      </div>
-
-      <div class="grid grid-2">
-        ${strongest ? `<div class="card"><div class="card-title mb-2"><i class="i-award text-green"></i>Strongest Subject</div><div class="kpi-value" style="color:${strongest.color}">${strongest.name}</div><div class="text-sm text-muted">${UI.fmt(strongest.avgAccuracy,0)}% avg accuracy across ${strongest.count} tests</div></div>` : ''}
-        ${weakest ? `<div class="card"><div class="card-title mb-2"><i class="i-trending-down text-red"></i>Needs Focus</div><div class="kpi-value" style="color:${weakest.color}">${weakest.name}</div><div class="text-sm text-muted">${UI.fmt(weakest.avgAccuracy,0)}% avg accuracy across ${weakest.count} tests</div></div>` : ''}
+          </div>
+        `).join('') : UI.emptyState({icon:'inbox', title:'No tests yet', sub:'Click + to add your first test.'})}
       </div>
     `;
+    UI.renderIcons();
+
+    // View All button handler
+    document.getElementById('viewAllAnalytics').onclick = () => App.nav('analytics');
+
+    // Clickable tests
+    document.querySelectorAll('.test-clickable').forEach(el => {
+      el.onclick = () => App.nav('testDetail', { id: el.dataset.testId });
+    });
   }
 
-  /* ---------------- ADD TEST ---------------- */
+  /* ---------------- ADD TEST (Compact) ---------------- */
   function add(editId=null) {
     UI.setPageTitle('edit-3', editId ? 'Edit Test' : 'Add Test');
     const subjects = Store.state.subjects;
@@ -1394,28 +1499,28 @@ const Pages = (() => {
     function subjectById(id) { return subjects.find(s => s.id === id); }
 
     UI.page.innerHTML = `
-      <form id="testForm" class="card" style="max-width: 900px;">
+      <form id="testForm" class="card form-compact" style="max-width: 900px;">
         <div class="card-header">
-          <div class="card-title"><i class="i-file-text"></i>Test Information</div>
+          <h3 class="card-title"><i data-lucide="file-text"></i>Test Information</h3>
         </div>
 
         <div class="grid grid-2">
           <div class="field">
-            <label><i class="i-book-open"></i>Subject</label>
+            <label><i data-lucide="book-open"></i>Subject</label>
             <select class="select" id="f-subject" required>
-              ${subjects.map(s => `<option value="${s.id}" ${s.id===initialSubject?'selected':''}>${s.name}</option>`).join('')}
+              ${subjects.map(s => `<option value="${s.id}" ${s.id===initialSubject?'selected':''}>${UI.escape(s.name)}</option>`).join('')}
             </select>
           </div>
           <div class="field">
-            <label><i class="i-calendar"></i>Test Date</label>
+            <label><i data-lucide="calendar"></i>Test Date</label>
             <input class="input" type="date" id="f-date" value="${editing?.date || new Date().toISOString().split('T')[0]}" required />
           </div>
           <div class="field">
-            <label><i class="i-tag"></i>Test Name</label>
-            <input class="input" type="text" id="f-name" placeholder="e.g. Sectional #14" value="${editing?.name||''}" />
+            <label><i data-lucide="tag"></i>Test Name</label>
+            <input class="input" type="text" id="f-name" placeholder="e.g. Sectional #14" value="${UI.escape(editing?.name)||''}" />
           </div>
           <div class="field">
-            <label><i class="i-activity"></i>Difficulty</label>
+            <label><i data-lucide="activity"></i>Difficulty</label>
             <select class="select" id="f-difficulty">
               <option value="Easy" ${editing?.difficulty==='Easy'?'selected':''}>Easy</option>
               <option value="Moderate" ${!editing||editing?.difficulty==='Moderate'?'selected':''}>Moderate</option>
@@ -1423,23 +1528,19 @@ const Pages = (() => {
             </select>
           </div>
           <div class="field">
-            <label><i class="i-link"></i>Source</label>
-            <input class="input" type="text" id="f-source" placeholder="e.g. Testbook, Oliveboard" value="${editing?.source||''}" />
-          </div>
-          <div class="field">
-            <label><i class="i-zap"></i>Expected Score (optional)</label>
-            <input class="input" type="number" step="0.5" id="f-expected" placeholder="Target marks" value="${editing?.expectedScore||''}" />
+            <label><i data-lucide="link"></i>Source</label>
+            <input class="input" type="text" id="f-source" placeholder="e.g. Testbook" value="${UI.escape(editing?.source)||''}" />
           </div>
         </div>
 
-        <div class="card-title mt-6 mb-4"><i class="i-calculator"></i>Attempt Data</div>
+        <h3 class="card-title mt-4 mb-2"><i data-lucide="calculator"></i>Attempt Data</h3>
         <div class="grid grid-4">
           <div class="field">
             <label>Total Questions</label>
             <input class="input" type="number" min="1" id="f-total" value="${editing?.totalQuestions ?? subjectById(initialSubject)?.defaultQuestions ?? 25}" required />
           </div>
           <div class="field">
-            <label>Time Limit (min)</label>
+            <label>Time Taken (min)</label>
             <input class="input" type="number" min="1" id="f-time" value="${editing?.timeLimit ?? subjectById(initialSubject)?.timeLimit ?? 15}" required />
           </div>
           <div class="field">
@@ -1467,7 +1568,7 @@ const Pages = (() => {
             <input class="input readonly" type="text" id="f-attemptpct" readonly value="${editing?.attemptPct ?? 0}%" />
           </div>
           <div class="field">
-            <label>Negative Marks <span class="text-faint">(auto)</span></label>
+            <label>Negative <span class="text-faint">(auto)</span></label>
             <input class="input readonly" type="text" id="f-negative" readonly value="${editing?.negativeMarks ?? 0}" />
           </div>
           <div class="field">
@@ -1484,48 +1585,47 @@ const Pages = (() => {
           </div>
         </div>
 
-        <div class="card-title mt-6 mb-4"><i class="i-alert-circle"></i>Error Analysis</div>
+        <h3 class="card-title mt-4 mb-2"><i data-lucide="alert-circle"></i>Error Analysis</h3>
         <div class="field">
-          <label><i class="i-tag"></i>Error Types (multi-select)</label>
+          <label><i data-lucide="tag"></i>Error Types</label>
           <div class="chip-group" id="f-errors">
-            ${Store.state.errorTags.map(t => `<label class="chip ${editing?.errorTypes?.includes(t)?'active':''}"><input type="checkbox" style="display:none;" value="${t}" ${editing?.errorTypes?.includes(t)?'checked':''}>${t}</label>`).join('')}
+            ${Store.state.errorTags.map(t => `<label class="chip ${editing?.errorTypes?.includes(t)?'active':''}"><input type="checkbox" style="display:none;" value="${UI.escape(t)}" ${editing?.errorTypes?.includes(t)?'checked':''}>${UI.escape(t)}</label>`).join('')}
           </div>
           <div class="flex gap-2 mt-2">
-            <input class="input" type="text" id="newErrorTag" placeholder="Add custom error tag" style="max-width:240px;" />
-            <button type="button" class="btn btn-sm" id="addErrorBtn"><i class="i-plus"></i>Add</button>
+            <input class="input" type="text" id="newErrorTag" placeholder="Add error tag" style="max-width:200px;" />
+            <button type="button" class="btn btn-sm" id="addErrorBtn"><i data-lucide="plus"></i>Add</button>
           </div>
         </div>
 
-        <div class="card-title mt-6 mb-4"><i class="i-bookmark"></i>Topics Covered</div>
+        <h3 class="card-title mt-4 mb-2"><i data-lucide="bookmark"></i>Topics</h3>
         <div class="field">
-          <label><i class="i-hash"></i>Topics in this test (subject-specific)</label>
           <div class="chip-group" id="f-topics"></div>
           <div class="flex gap-2 mt-2">
-            <input class="input" type="text" id="newTopic" placeholder="Add new topic" style="max-width:240px;" />
-            <button type="button" class="btn btn-sm" id="addTopicBtn"><i class="i-plus"></i>Add</button>
+            <input class="input" type="text" id="newTopic" placeholder="Add topic" style="max-width:200px;" />
+            <button type="button" class="btn btn-sm" id="addTopicBtn"><i data-lucide="plus"></i>Add</button>
           </div>
         </div>
 
-        <div class="card-title mt-6 mb-4"><i class="i-message-square"></i>Reflection</div>
+        <h3 class="card-title mt-4 mb-2"><i data-lucide="message-square"></i>Reflection</h3>
         <div class="grid grid-2">
           <div class="field">
             <label>Why did I lose marks?</label>
-            <textarea class="textarea" id="f-notes" placeholder="Be specific — this becomes revision material later.">${editing?.notes||''}</textarea>
+            <textarea class="textarea" id="f-notes" placeholder="Be specific...">${UI.escape(editing?.notes)||''}</textarea>
           </div>
           <div class="field">
-            <label>Revision Notes (for future you)</label>
-            <textarea class="textarea" id="f-revnotes" placeholder="Key formula / concept to revisit.">${editing?.revisionNotes||''}</textarea>
+            <label>Revision Notes</label>
+            <textarea class="textarea" id="f-revnotes" placeholder="Key concepts...">${UI.escape(editing?.revisionNotes)||''}</textarea>
           </div>
         </div>
 
-        <div class="flex justify-between mt-6">
-          <button type="button" class="btn" onclick="Pages.nav('dashboard')"><i class="i-x"></i>Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class="i-check"></i>${editId?'Update Test':'Save Test'}</button>
+        <div class="flex justify-between mt-4">
+          <button type="button" class="btn" onclick="Pages.nav('dashboard')"><i data-lucide="x"></i>Cancel</button>
+          <button type="submit" class="btn btn-primary"><i data-lucide="check"></i>${editId?'Update':'Save'}</button>
         </div>
       </form>
     `;
+    UI.renderIcons();
 
-    // Auto-calculations
     const recalc = () => {
       const total = +document.getElementById('f-total').value || 0;
       const attempted = +document.getElementById('f-attempted').value || 0;
@@ -1558,20 +1658,18 @@ const Pages = (() => {
     });
     recalc();
 
-    // Topic chips based on subject
     const renderTopics = () => {
       const subjId = document.getElementById('f-subject').value;
       const subj = subjectById(subjId);
       const topics = subj?.topics || [];
       const selected = editing?.topics?.filter(t => topics.includes(t)) || [];
       const container = document.getElementById('f-topics');
-      container.innerHTML = topics.map(t => `<label class="chip ${selected.includes(t)?'active':''}"><input type="checkbox" style="display:none;" value="${t}" ${selected.includes(t)?'checked':''}>${t}</label>`).join('') || '<span class="text-sm text-muted">No topics defined. Add one below, or manage in Settings.</span>';
+      container.innerHTML = topics.map(t => `<label class="chip ${selected.includes(t)?'active':''}"><input type="checkbox" style="display:none;" value="${UI.escape(t)}" ${selected.includes(t)?'checked':''}>${UI.escape(t)}</label>`).join('') || '<span class="text-sm text-muted">No topics. Add one below.</span>';
       container.querySelectorAll('input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => cb.parentElement.classList.toggle('active', cb.checked));
       });
     };
     document.getElementById('f-subject').addEventListener('change', () => {
-      // Update default q/time
       const subj = subjectById(document.getElementById('f-subject').value);
       if (subj && !editId) {
         document.getElementById('f-total').value = subj.defaultQuestions;
@@ -1582,28 +1680,24 @@ const Pages = (() => {
     });
     renderTopics();
 
-    // Error chip toggle
     document.querySelectorAll('#f-errors input[type=checkbox]').forEach(cb => {
       cb.addEventListener('change', () => cb.parentElement.classList.toggle('active', cb.checked));
     });
 
-    // Add error tag
     document.getElementById('addErrorBtn').onclick = () => {
       const v = document.getElementById('newErrorTag').value.trim();
       if (!v) return;
       Store.addErrorTag(v);
       UI.toast('Error tag added','success');
       document.getElementById('newErrorTag').value = '';
-      // refresh chip list
       const errorsDiv = document.getElementById('f-errors');
       const existing = [...errorsDiv.querySelectorAll('input:checked')].map(i=>i.value);
-      errorsDiv.innerHTML = Store.state.errorTags.map(t => `<label class="chip ${existing.includes(t)?'active':''}"><input type="checkbox" style="display:none;" value="${t}" ${existing.includes(t)?'checked':''}>${t}</label>`).join('');
+      errorsDiv.innerHTML = Store.state.errorTags.map(t => `<label class="chip ${existing.includes(t)?'active':''}"><input type="checkbox" style="display:none;" value="${UI.escape(t)}" ${existing.includes(t)?'checked':''}>${UI.escape(t)}</label>`).join('');
       errorsDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
         cb.addEventListener('change', () => cb.parentElement.classList.toggle('active', cb.checked));
       });
     };
 
-    // Add topic
     document.getElementById('addTopicBtn').onclick = () => {
       const v = document.getElementById('newTopic').value.trim();
       const subjId = document.getElementById('f-subject').value;
@@ -1614,7 +1708,6 @@ const Pages = (() => {
       renderTopics();
     };
 
-    // Submit
     document.getElementById('testForm').addEventListener('submit', e => {
       e.preventDefault();
       const subjId = document.getElementById('f-subject').value;
@@ -1636,7 +1729,6 @@ const Pages = (() => {
         timePerQ: parseFloat(document.getElementById('f-tpq').value),
         timePerCorrect: parseFloat(document.getElementById('f-tpc').value),
         skipped: +document.getElementById('f-skipped').value,
-        expectedScore: parseFloat(document.getElementById('f-expected').value) || null,
         notes: document.getElementById('f-notes').value.trim(),
         revisionNotes: document.getElementById('f-revnotes').value.trim(),
         errorTypes: [...document.querySelectorAll('#f-errors input:checked')].map(c=>c.value),
@@ -1645,47 +1737,215 @@ const Pages = (() => {
       if (editId) {
         Store.updateTest(editId, data);
         UI.toast('Test updated','success');
+        App.nav('testDetail', { id: editId });
       } else {
-        Store.addTest(data);
+        const newTest = Store.addTest(data);
         UI.toast('Test saved','success');
+        App.nav('testDetail', { id: newTest.id });
       }
-      Pages.nav('history');
     });
+  }
+
+  /* ---------------- TEST DETAIL ---------------- */
+  function testDetail(id) {
+    const test = Store.state.tests.find(t => t.id === id);
+    if (!test) {
+      UI.page.innerHTML = UI.emptyState({icon:'alert-circle', title:'Test not found', sub:'This test may have been deleted.', action:'<button class="btn btn-primary" onclick="App.nav(\'history\')">Back to History</button>'});
+      UI.renderIcons();
+      return;
+    }
+
+    UI.setPageTitle('file-text', test.name || UI.subjectName(test.subject));
+    const subject = Store.state.subjects.find(s => s.id === test.subject);
+    const accColor = test.accuracy >= 70 ? 'text-green' : test.accuracy >= 55 ? 'text-amber' : 'text-red';
+
+    UI.page.innerHTML = `
+      <div class="flex items-center justify-between mb-4">
+        <button class="btn btn-sm btn-ghost" onclick="App.nav('history')"><i data-lucide="arrow-left"></i>Back</button>
+        <div class="flex gap-2">
+          <button class="btn btn-sm" id="editTestBtn"><i data-lucide="edit-3"></i>Edit</button>
+          <button class="btn btn-sm btn-danger" id="deleteTestBtn"><i data-lucide="trash-2"></i>Delete</button>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <div>
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">${UI.escape(test.name) || UI.escape(UI.subjectName(test.subject))}</h2>
+            <div class="text-sm text-muted">${UI.escape(UI.subjectName(test.subject))} • ${UI.fmtDate(test.date)} • ${UI.escape(test.difficulty||'')}</div>
+          </div>
+          <div style="width:12px; height:12px; border-radius:3px; background:${subject?.color || '#64748b'};"></div>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE METRICS -->
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="target"></i>Performance</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-item-label">Marks</div>
+            <div class="detail-item-value">${UI.fmt(test.marks, 2)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Accuracy</div>
+            <div class="detail-item-value ${accColor}">${UI.fmt(test.accuracy, 1)}%</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Attempt %</div>
+            <div class="detail-item-value">${UI.fmt(test.attemptPct, 1)}%</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Correct</div>
+            <div class="detail-item-value text-green">${test.correct}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Wrong</div>
+            <div class="detail-item-value text-red">${test.wrong}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Skipped</div>
+            <div class="detail-item-value">${test.skipped || (test.totalQuestions - test.attempted)}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIME ANALYSIS -->
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="clock"></i>Time Analysis</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-item-label">Time Taken</div>
+            <div class="detail-item-value">${test.timeLimit} min</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Time/Question</div>
+            <div class="detail-item-value">${UI.fmt(test.timePerQ, 1)}s</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Time/Correct</div>
+            <div class="detail-item-value">${UI.fmt(test.timePerCorrect, 1)}s</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Total Questions</div>
+            <div class="detail-item-value">${test.totalQuestions}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Attempted</div>
+            <div class="detail-item-value">${test.attempted}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Negative Marks</div>
+            <div class="detail-item-value text-red">${UI.fmt(test.negativeMarks, 2)}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ERROR ANALYSIS -->
+      ${test.errorTypes && test.errorTypes.length ? `
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="alert-triangle"></i>Error Analysis</h3>
+        <div class="chip-group">
+          ${test.errorTypes.map(e => `<span class="badge badge-red">${UI.escape(e)}</span>`).join('')}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- TOPICS COVERED -->
+      ${test.topics && test.topics.length ? `
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="bookmark"></i>Topics Covered</h3>
+        <div class="chip-group">
+          ${test.topics.map(t => `<span class="badge badge-blue">${UI.escape(t)}</span>`).join('')}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- REFLECTION NOTES -->
+      ${test.notes ? `
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="message-square"></i>Why I Lost Marks</h3>
+        <div class="detail-notes">${UI.escape(test.notes)}</div>
+      </div>
+      ` : ''}
+
+      ${test.revisionNotes ? `
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="book-open"></i>Revision Notes</h3>
+        <div class="detail-notes" style="border-left-color: var(--c-green);">${UI.escape(test.revisionNotes)}</div>
+      </div>
+      ` : ''}
+
+      <!-- METADATA -->
+      <div class="detail-section">
+        <h3 class="card-title mb-3"><i data-lucide="info"></i>Additional Info</h3>
+        <div class="detail-grid">
+          ${test.source ? `<div class="detail-item"><div class="detail-item-label">Source</div><div class="detail-item-value" style="font-size:13px;">${UI.escape(test.source)}</div></div>` : ''}
+          <div class="detail-item">
+            <div class="detail-item-label">Created</div>
+            <div class="detail-item-value" style="font-size:12px;">${test.createdAt ? new Date(test.createdAt).toLocaleString() : UI.fmtDate(test.date)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Test ID</div>
+            <div class="detail-item-value" style="font-size:11px; font-family: var(--font-mono);">${test.id}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    UI.renderIcons();
+
+    document.getElementById('editTestBtn').onclick = () => App.nav('add', { editId: id });
+    document.getElementById('deleteTestBtn').onclick = () => {
+      UI.confirm({
+        title: 'Delete test?',
+        message: 'This action cannot be undone.',
+        danger: true,
+        okLabel: 'Delete',
+        onOk: () => {
+          Store.deleteTest(id);
+          UI.toast('Test deleted', 'success');
+          App.nav('history');
+        }
+      });
+    };
   }
 
   /* ---------------- HISTORY ---------------- */
   function history() {
     UI.setPageTitle('history','Test History');
     const all = Store.state.tests;
+    const viewMode = Store.state.settings.historyView || 'table';
 
     UI.page.innerHTML = `
       <div class="card mb-4">
-        <div class="flex items-center gap-3 flex-wrap">
-          <div class="flex items-center gap-2" style="flex:1; min-width: 200px;">
-            <i class="i-search text-muted"></i>
-            <input class="input" id="histSearch" placeholder="Search by name, subject, notes..." style="border:none; padding: 0;" />
-          </div>
-          <select class="select" id="histSubject" style="max-width:160px;">
+        <div class="history-filters">
+          <select class="select" id="histSubject">
             <option value="">All Subjects</option>
-            ${Store.state.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+            ${Store.state.subjects.map(s => `<option value="${s.id}">${UI.escape(s.name)}</option>`).join('')}
           </select>
-          <select class="select" id="histDiff" style="max-width:140px;">
+          <select class="select" id="histDiff">
             <option value="">All Difficulties</option>
             <option>Easy</option><option>Moderate</option><option>Hard</option>
           </select>
-          <select class="select" id="histSort" style="max-width:160px;">
+          <select class="select" id="histSort">
             <option value="date-desc">Newest first</option>
             <option value="date-asc">Oldest first</option>
             <option value="marks-desc">Highest score</option>
             <option value="marks-asc">Lowest score</option>
             <option value="acc-desc">Best accuracy</option>
           </select>
-          <button class="btn btn-sm btn-danger" id="histBulkDelete" style="display:none;"><i class="i-trash-2"></i>Delete Selected</button>
+          <button class="btn btn-sm btn-danger" id="histBulkDelete" style="display:none;"><i data-lucide="trash-2"></i>Delete</button>
+        </div>
+        <div class="mt-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="search" class="text-muted" style="width:14px;height:14px;"></i>
+            <input class="input" id="histSearch" placeholder="Search by name, subject, notes..." style="border:none; padding: 0; flex:1;" />
+          </div>
         </div>
       </div>
 
       <div id="histTable"></div>
     `;
+    UI.renderIcons();
 
     let selected = new Set();
 
@@ -1694,15 +1954,17 @@ const Pages = (() => {
       const subj = document.getElementById('histSubject').value;
       const diff = document.getElementById('histDiff').value;
       const sort = document.getElementById('histSort').value;
+      
       let list = all.filter(t => {
         if (subj && t.subject !== subj) return false;
         if (diff && t.difficulty !== diff) return false;
         if (q) {
-          const hay = [t.name, t.subject, t.notes, t.source, (t.topics||[]).join(' '), (t.errorTypes||[]).join(' ')].join(' ').toLowerCase();
+          const hay = [t.name||'', t.subject, t.notes||'', t.source||'', (t.topics||[]).join(' '), (t.errorTypes||[]).join(' ')].join(' ').toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
       });
+
       const sorters = {
         'date-desc': (a,b)=>new Date(b.date)-new Date(a.date),
         'date-asc': (a,b)=>new Date(a.date)-new Date(b.date),
@@ -1715,96 +1977,120 @@ const Pages = (() => {
       const table = document.getElementById('histTable');
       if (!list.length) {
         table.innerHTML = `<div class="card">${UI.emptyState({icon:'inbox', title:'No tests match your filters', sub:'Try adjusting the search or filters.'})}</div>`;
-        document.getElementById('histBulkDelete').style.display = 'none';
+        UI.renderIcons();
         return;
       }
 
-      table.innerHTML = `<div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:30px;"><input type="checkbox" id="histSelectAll" ${selected.size===list.length && list.length?'checked':''}/></th>
-              <th>Date</th>
-              <th>Test</th>
-              <th>Subject</th>
-              <th>Marks</th>
-              <th>Accuracy</th>
-              <th>Attempt %</th>
-              <th>Time/Q</th>
-              <th>Errors</th>
-              <th style="width:100px;"></th>
-            </tr>
-          </thead>
-          <tbody>
+      if (viewMode === 'grid') {
+        table.innerHTML = `
+          <div class="history-grid">
             ${list.map(t => `
-              <tr data-id="${t.id}">
-                <td><input type="checkbox" class="hist-row-check" ${selected.has(t.id)?'checked':''} /></td>
-                <td class="text-sm">${UI.fmtDateShort(t.date)}</td>
-                <td>
-                  <div class="font-medium truncate" style="max-width:160px;">${t.name || '(Untitled)'}</div>
-                  <div class="text-xs text-muted">${t.difficulty||''} ${t.source?' • '+t.source:''}</div>
-                </td>
-                <td>
+              <div class="history-card" data-test-id="${t.id}">
+                <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2">
                     <div style="width:8px; height:8px; border-radius:2px; background:${UI.subjectColor(t.subject)}"></div>
-                    <span class="text-sm">${UI.subjectName(t.subject)}</span>
+                    <span class="text-xs text-muted">${UI.escape(UI.subjectName(t.subject))}</span>
                   </div>
-                </td>
-                <td class="font-bold font-mono">${UI.fmt(t.marks,1)}</td>
-                <td>
-                  <div class="flex items-center gap-2">
-                    <div class="progress" style="width:60px;"><div class="progress-bar" style="width:${t.accuracy}%; background:${t.accuracy>=70?'var(--c-green)':t.accuracy>=55?'var(--c-amber)':'var(--c-red)'}"></div></div>
-                    <span class="font-mono text-sm">${UI.fmt(t.accuracy,0)}%</span>
-                  </div>
-                </td>
-                <td class="font-mono text-sm">${UI.fmt(t.attemptPct,0)}%</td>
-                <td class="font-mono text-sm">${UI.fmt(t.timePerQ,0)}s</td>
-                <td>${(t.errorTypes||[]).length ? `<span class="badge badge-red">${t.errorTypes[0]}${t.errorTypes.length>1?' +'+(t.errorTypes.length-1):''}</span>` : '<span class="text-faint">—</span>'}</td>
-                <td>
-                  <div class="flex gap-1">
-                    <button class="btn btn-sm btn-ghost" data-act="edit"><i class="i-edit-3"></i></button>
-                    <button class="btn btn-sm btn-ghost" data-act="dup"><i class="i-copy"></i></button>
-                    <button class="btn btn-sm btn-ghost btn-danger" data-act="del"><i class="i-trash-2"></i></button>
-                  </div>
-                </td>
-              </tr>
+                  <span class="text-xs text-muted">${UI.fmtDateShort(t.date)}</span>
+                </div>
+                <div class="font-medium truncate mb-2">${UI.escape(t.name) || '(Untitled)'}</div>
+                <div class="flex items-center justify-between">
+                  <div class="font-bold font-mono">${UI.fmt(t.marks,1)}</div>
+                  <div class="text-sm ${t.accuracy>=65?'text-green':t.accuracy>=50?'text-amber':'text-red'}">${UI.fmt(t.accuracy,0)}%</div>
+                </div>
+              </div>
             `).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div class="text-sm text-muted mt-2">${list.length} test${list.length>1?'s':''}</div>`;
-
-      document.getElementById('histSelectAll').onchange = e => {
-        if (e.target.checked) list.forEach(t => selected.add(t.id));
-        else selected.clear();
-        render();
-      };
-      table.querySelectorAll('.hist-row-check').forEach((cb, i) => {
-        cb.onchange = () => {
-          if (cb.checked) selected.add(list[i].id); else selected.delete(list[i].id);
-          document.getElementById('histBulkDelete').style.display = selected.size ? '' : 'none';
+          </div>
+        `;
+      } else if (viewMode === 'list') {
+        table.innerHTML = `
+          <div class="flex flex-col gap-2">
+            ${list.map(t => `
+              <div class="history-list-item" data-test-id="${t.id}">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div style="width:8px; height:8px; border-radius:2px; background:${UI.subjectColor(t.subject)}; flex-shrink:0;"></div>
+                  <div class="min-w-0">
+                    <div class="font-medium truncate">${UI.escape(t.name) || '(Untitled)'}</div>
+                    <div class="text-xs text-muted">${UI.escape(UI.subjectName(t.subject))} • ${UI.fmtDateShort(t.date)}</div>
+                  </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="font-bold font-mono">${UI.fmt(t.marks,1)}</div>
+                  <div class="text-xs ${t.accuracy>=65?'text-green':t.accuracy>=50?'text-amber':'text-red'}">${UI.fmt(t.accuracy,0)}%</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        // Table View
+        table.innerHTML = `<div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px;"><input type="checkbox" id="histSelectAll" ${selected.size===list.length && list.length?'checked':''}/></th>
+                <th>Date</th>
+                <th>Test</th>
+                <th>Subject</th>
+                <th>Marks</th>
+                <th>Accuracy</th>
+                <th>Attempt %</th>
+                <th>Time/Q</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map(t => `
+                <tr data-test-id="${t.id}" data-clickable>
+                  <td onclick="event.stopPropagation()"><input type="checkbox" class="hist-row-check" ${selected.has(t.id)?'checked':''} /></td>
+                  <td class="text-sm">${UI.fmtDateShort(t.date)}</td>
+                  <td>
+                    <div class="font-medium truncate" style="max-width:160px;">${UI.escape(t.name) || '(Untitled)'}</div>
+                    <div class="text-xs text-muted">${UI.escape(t.difficulty||'')} ${t.source?' • '+UI.escape(t.source):''}</div>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <div style="width:8px; height:8px; border-radius:2px; background:${UI.subjectColor(t.subject)}"></div>
+                      <span class="text-sm">${UI.escape(UI.subjectName(t.subject))}</span>
+                    </div>
+                  </td>
+                  <td class="font-bold font-mono">${UI.fmt(t.marks,1)}</td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <div class="progress" style="width:60px;"><div class="progress-bar" style="width:${t.accuracy}%; background:${t.accuracy>=70?'var(--c-green)':t.accuracy>=55?'var(--c-amber)':'var(--c-red)'}"></div></div>
+                      <span class="font-mono text-sm">${UI.fmt(t.accuracy,0)}%</span>
+                    </div>
+                  </td>
+                  <td class="font-mono text-sm">${UI.fmt(t.attemptPct,0)}%</td>
+                  <td class="font-mono text-sm">${UI.fmt(t.timePerQ,0)}s</td>
+                  <td>${(t.errorTypes||[]).length ? `<span class="badge badge-red">${UI.escape(t.errorTypes[0])}${t.errorTypes.length>1?' +'+(t.errorTypes.length-1):''}</span>` : '<span class="text-faint">—</span>'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="text-sm text-muted mt-2">${list.length} test${list.length>1?'s':''}</div>`;
+        
+        document.getElementById('histSelectAll').onchange = e => {
+          if (e.target.checked) list.forEach(t => selected.add(t.id));
+          else selected.clear();
+          render();
         };
-      });
-      table.querySelectorAll('[data-act]').forEach(btn => {
-        btn.onclick = () => {
-          const row = btn.closest('tr');
-          const id = row.dataset.id;
-          const act = btn.dataset.act;
-          if (act === 'edit') { Pages.nav('add', { editId: id }); }
-          else if (act === 'dup') {
-            const t = Store.state.tests.find(x => x.id === id);
-            if (t) {
-              const clone = { ...t }; delete clone.id; delete clone.createdAt;
-              clone.date = new Date().toISOString().split('T')[0];
-              clone.name = (clone.name||'') + ' (copy)';
-              Store.addTest(clone);
-              UI.toast('Test duplicated','success');
-              render();
-            }
-          }
-          else if (act === 'del') {
-            UI.confirm({title:'Delete test?', message:'This cannot be undone.', danger:true, okLabel:'Delete', onOk:() => { Store.deleteTest(id); UI.toast('Deleted','success'); render(); }});
-          }
+        table.querySelectorAll('.hist-row-check').forEach((cb, i) => {
+          cb.onchange = () => {
+            if (cb.checked) selected.add(list[i].id); else selected.delete(list[i].id);
+            document.getElementById('histBulkDelete').style.display = selected.size ? '' : 'none';
+          };
+        });
+      }
+
+      UI.renderIcons();
+
+      // Click handlers for all views
+      table.querySelectorAll('[data-test-id]').forEach(el => {
+        el.onclick = (e) => {
+          if(e.target.type === 'checkbox') return;
+          App.nav('testDetail', { id: el.dataset.testId });
         };
       });
     };
@@ -1834,12 +2120,11 @@ const Pages = (() => {
     UI.page.innerHTML = `
       <div class="card mb-4">
         <div class="card-header">
-          <div class="card-title"><i class="i-filter"></i>Subject Filter</div>
-          <button class="btn btn-sm" id="exportCharts"><i class="i-download"></i>Export Charts</button>
+          <h3 class="card-title"><i data-lucide="filter"></i>Subject Filter</h3>
         </div>
         <div class="chip-group" id="subjectChips">
           <div class="chip active" data-s="all">All</div>
-          ${subjects.map(s => `<div class="chip" data-s="${s.id}" style="--cc:${s.color}">${s.name}</div>`).join('')}
+          ${subjects.map(s => `<div class="chip" data-s="${s.id}" style="--cc:${s.color}">${UI.escape(s.name)}</div>`).join('')}
         </div>
       </div>
 
@@ -1847,75 +2132,38 @@ const Pages = (() => {
 
       <div class="grid grid-2 mb-4">
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-trending-up"></i>Performance Trend</div><button class="btn btn-sm btn-ghost" data-chart="chartTrend"><i class="i-download"></i></button></div>
+          <div class="card-header"><h3 class="card-title"><i data-lucide="trending-up"></i>Performance Trend</h3></div>
           <div class="chart-box"><canvas id="chartTrend"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-target"></i>Accuracy Trend</div><button class="btn btn-sm btn-ghost" data-chart="chartAcc"><i class="i-download"></i></button></div>
+          <div class="card-header"><h3 class="card-title"><i data-lucide="target"></i>Accuracy Trend</h3></div>
           <div class="chart-box"><canvas id="chartAcc"></canvas></div>
         </div>
       </div>
 
       <div class="grid grid-2 mb-4">
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-clock"></i>Time per Test</div><button class="btn btn-sm btn-ghost" data-chart="chartTime"><i class="i-download"></i></button></div>
-          <div class="chart-box"><canvas id="chartTime"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-alert-octagon"></i>Negative Marks Trend</div><button class="btn btn-sm btn-ghost" data-chart="chartNeg"><i class="i-download"></i></button></div>
-          <div class="chart-box"><canvas id="chartNeg"></canvas></div>
-        </div>
-      </div>
-
-      <div class="grid grid-2 mb-4">
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-users"></i>Subject Comparison</div><button class="btn btn-sm btn-ghost" data-chart="chartSubj"><i class="i-download"></i></button></div>
+          <div class="card-header"><h3 class="card-title"><i data-lucide="users"></i>Subject Comparison</h3></div>
           <div class="chart-box"><canvas id="chartSubj"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-calendar"></i>Monthly Activity</div><button class="btn btn-sm btn-ghost" data-chart="chartMonth"><i class="i-download"></i></button></div>
-          <div class="chart-box"><canvas id="chartMonth"></canvas></div>
-        </div>
-      </div>
-
-      <div class="grid grid-2 mb-4">
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-bookmark"></i>Topic Performance</div><button class="btn btn-sm btn-ghost" data-chart="chartTopic"><i class="i-download"></i></button></div>
-          <div class="chart-box"><canvas id="chartTopic"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-x-circle"></i>Weak Topics</div><button class="btn btn-sm btn-ghost" data-chart="chartWeak"><i class="i-download"></i></button></div>
-          <div class="chart-box"><canvas id="chartWeak"></canvas></div>
-        </div>
-      </div>
-
-      <div class="grid grid-2 mb-4">
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-alert-triangle"></i>Error Distribution</div><button class="btn btn-sm btn-ghost" data-chart="chartErr"><i class="i-download"></i></button></div>
+          <div class="card-header"><h3 class="card-title"><i data-lucide="alert-triangle"></i>Error Distribution</h3></div>
           <div class="chart-box"><canvas id="chartErr"></canvas></div>
         </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-check-circle"></i>Attempt vs Correct</div><button class="btn btn-sm btn-ghost" data-chart="chartAC"><i class="i-download"></i></button></div>
-          <div class="chart-box"><canvas id="chartAC"></canvas></div>
-        </div>
       </div>
 
       <div class="grid grid-2 mb-4">
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-compass"></i>Consistency Radar</div><button class="btn btn-sm btn-ghost" data-chart="chartRadar"><i class="i-download"></i></button></div>
+          <div class="card-header"><h3 class="card-title"><i data-lucide="compass"></i>Consistency Radar</h3></div>
           <div class="chart-box"><canvas id="chartRadar"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="i-lightbulb"></i>Smart Insights</div></div>
+          <div class="card-header"><h3 class="card-title"><i data-lucide="lightbulb"></i>Smart Insights</h3></div>
           <div id="anaInsights" class="flex flex-col gap-2"></div>
         </div>
       </div>
-
-      <div class="card mb-4">
-        <div class="card-header"><div class="card-title"><i class="i-zap"></i>Prediction Engine</div></div>
-        <div id="anaPredict" class="grid grid-4"></div>
-      </div>
     `;
+    UI.renderIcons();
 
     const render = () => {
       const st = Analytics.stats(current);
@@ -1923,7 +2171,7 @@ const Pages = (() => {
       if (!st) {
         kpis.innerHTML = '';
         document.getElementById('anaInsights').innerHTML = UI.emptyState({icon:'activity', title:'No data yet', sub:'Add tests to see analytics.'});
-        document.getElementById('anaPredict').innerHTML = '';
+        UI.renderIcons();
         return;
       }
       kpis.innerHTML = [
@@ -1936,7 +2184,6 @@ const Pages = (() => {
       const trend = Analytics.performanceTrend(current);
       const tc = Charts.themeColors();
 
-      // Performance trend
       if (trend.length) {
         Charts.line('chartTrend', trend.map(t=>UI.fmtDateShort(t.date)), [
           { label: 'Marks', data: trend.map(t=>t.marks), borderColor: tc.palette[0], backgroundColor: tc.palette[0]+'20' },
@@ -1944,15 +2191,8 @@ const Pages = (() => {
         Charts.line('chartAcc', trend.map(t=>UI.fmtDateShort(t.date)), [
           { label: 'Accuracy %', data: trend.map(t=>t.accuracy), borderColor: tc.palette[1], backgroundColor: tc.palette[1]+'20' },
         ]);
-        Charts.line('chartTime', trend.map(t=>UI.fmtDateShort(t.date)), [
-          { label: 'Time (min)', data: trend.map(t=>t.time), borderColor: tc.palette[2], backgroundColor: tc.palette[2]+'20' },
-        ]);
-        Charts.line('chartNeg', trend.map(t=>UI.fmtDateShort(t.date)), [
-          { label: 'Negative Marks', data: trend.map(t=>t.negative), borderColor: tc.palette[3], backgroundColor: tc.palette[3]+'20' },
-        ]);
       }
 
-      // Subject comparison
       const sc = Analytics.subjectComparison().filter(s => s.count);
       if (sc.length) {
         Charts.bar('chartSubj', sc.map(s=>s.name), [
@@ -1960,31 +2200,6 @@ const Pages = (() => {
         ]);
       }
 
-      // Monthly
-      const monthly = Analytics.monthlyActivity();
-      if (monthly.length) {
-        Charts.bar('chartMonth', monthly.map(m=>m.key), [
-          { label: 'Tests', data: monthly.map(m=>m.count), backgroundColor: tc.palette[0] },
-        ]);
-      }
-
-      // Topic perf
-      const topics = Analytics.topicStats(current).sort((a,b)=>b.avgAccuracy-a.avgAccuracy).slice(0,8);
-      if (topics.length) {
-        Charts.bar('chartTopic', topics.map(t=>t.topic), [
-          { label: 'Avg Accuracy %', data: topics.map(t=>t.avgAccuracy), backgroundColor: tc.palette[1] },
-        ], { horizontal: true });
-      }
-
-      // Weak
-      const weak = Analytics.weakTopics(current);
-      if (weak.length) {
-        Charts.bar('chartWeak', weak.map(t=>t.topic), [
-          { label: 'Avg Accuracy %', data: weak.map(t=>t.avgAccuracy), backgroundColor: tc.palette[3] },
-        ], { horizontal: true });
-      }
-
-      // Error dist
       const errDist = Analytics.errorDistribution(current);
       if (errDist.length) {
         Charts.doughnut('chartErr', errDist.map(e=>e.label), errDist.map(e=>e.value));
@@ -1993,41 +2208,22 @@ const Pages = (() => {
         document.getElementById('chartErr').parentElement.innerHTML = `<div class="chart-box flex items-center justify-center text-muted">No error data</div>`;
       }
 
-      // Attempt vs Correct stacked
-      if (trend.length) {
-        Charts.stackedBar('chartAC', trend.map(t=>UI.fmtDateShort(t.date)), [
-          { label: 'Correct', data: trend.map((t,i)=>(Analytics.bySubject(current)[i]?.correct||0)), backgroundColor: tc.palette[1] },
-          { label: 'Wrong', data: trend.map((t,i)=>(Analytics.bySubject(current)[i]?.wrong||0)), backgroundColor: tc.palette[3] },
-        ]);
-      }
-
-      // Radar (consistency across subjects)
       if (sc.length >= 3) {
         const avgAccAll = sc.reduce((a,s)=>a+s.avgAccuracy,0)/sc.length;
-        const avgAttemptAll = sc.reduce((a,s)=>a+s.avgAttemptPct,0)/sc.length;
         Charts.radar('chartRadar', sc.map(s=>s.name), [
           { label: 'Accuracy', data: sc.map(s=>s.avgAccuracy), borderColor: tc.palette[0], backgroundColor: tc.palette[0]+'30', pointBackgroundColor: tc.palette[0] },
           { label: 'Avg ('+UI.fmt(avgAccAll,0)+'%)', data: sc.map(()=>avgAccAll), borderColor: tc.palette[3], backgroundColor: 'transparent', borderDash: [4,4], pointRadius: 0 },
         ]);
       }
 
-      // Insights
       const ins = Analytics.generateInsights(current);
       document.getElementById('anaInsights').innerHTML = ins.length
-        ? ins.map(i => `<div class="insight"><i class="i-${i.icon} ${i.tone==='good'?'text-green':i.tone==='warn'?'text-amber':'text-blue'}"></i><div>${i.text}</div></div>`).join('')
+        ? ins.map(i => `<div class="insight"><i data-lucide="${i.icon}" class="${i.tone==='good'?'text-green':i.tone==='warn'?'text-amber':'text-blue'}"></i><div>${i.text}</div></div>`).join('')
         : UI.emptyState({icon:'sparkles', title:'Add more tests for insights'});
-
-      // Predict
-      const pred = Analytics.predict(current);
-      document.getElementById('anaPredict').innerHTML = pred ? `
-        ${UI.kpi('Next Score (est)', UI.fmt(pred.nextScore,1), 'based on trend', 'zap')}
-        ${UI.kpi('Next Accuracy', UI.fmt(pred.nextAccuracy,1)+'%', 'projected', 'target')}
-        ${UI.kpi('Trend Slope', UI.fmt(pred.slope,2), pred.slope>0?'Improving':'Declining', pred.slope>0?'trending-up':'trending-down')}
-        ${UI.kpi('Confidence', trend.length>=5?'High':'Low', `${trend.length} data points`, 'activity')}
-      ` : `<div class="col-span-4 text-muted text-sm">Need at least 2 tests to predict.</div>`;
+      
+      UI.renderIcons();
     };
 
-    // Chip handlers
     document.querySelectorAll('#subjectChips .chip').forEach(chip => {
       chip.onclick = () => {
         document.querySelectorAll('#subjectChips .chip').forEach(c => c.classList.remove('active'));
@@ -2036,14 +2232,6 @@ const Pages = (() => {
         render();
       };
     });
-
-    document.querySelectorAll('[data-chart]').forEach(btn => {
-      btn.onclick = () => Charts.exportPNG(btn.dataset.chart);
-    });
-    document.getElementById('exportCharts').onclick = () => {
-      Charts.exportAll(['chartTrend','chartAcc','chartTime','chartNeg','chartSubj','chartMonth','chartTopic','chartWeak','chartErr','chartAC','chartRadar']);
-      UI.toast('Charts exported','success');
-    };
 
     render();
   }
@@ -2063,7 +2251,6 @@ const Pages = (() => {
       }
     }
 
-    // priority: low accuracy OR long time since last
     allTopics.sort((a,b) => {
       const pa = (100 - a.avgAcc) + Math.min(30, a.daysAgo*2);
       const pb = (100 - b.avgAcc) + Math.min(30, b.daysAgo*2);
@@ -2077,12 +2264,12 @@ const Pages = (() => {
     UI.page.innerHTML = `
       <div class="grid grid-3 mb-4">
         <div class="card">
-          <div class="card-title mb-4"><i class="i-alert-triangle text-red"></i>Today's Priority</div>
+          <h3 class="card-title mb-4"><i data-lucide="alert-triangle" class="text-red"></i>Today's Priority</h3>
           ${highPriority.length ? highPriority.map(t => `
             <div class="flex items-center justify-between mb-3 pb-3" style="border-bottom: var(--border);">
               <div>
-                <div class="font-medium">${t.topic}</div>
-                <div class="text-xs text-muted" style="color:${t.color}">${t.subject} • ${UI.fmt(t.avgAcc,0)}% • ${t.tests} tests</div>
+                <div class="font-medium">${UI.escape(t.topic)}</div>
+                <div class="text-xs text-muted" style="color:${t.color}">${UI.escape(t.subject)} • ${UI.fmt(t.avgAcc,0)}% • ${t.tests} tests</div>
               </div>
               <span class="badge badge-red">${t.daysAgo===0?'today':t.daysAgo+'d ago'}</span>
             </div>
@@ -2090,50 +2277,33 @@ const Pages = (() => {
         </div>
 
         <div class="card">
-          <div class="card-title mb-4"><i class="i-clock text-amber"></i>Forgotten Topics</div>
+          <h3 class="card-title mb-4"><i data-lucide="clock" class="text-amber"></i>Forgotten Topics</h3>
           ${forgotten.length ? forgotten.map(t => `
             <div class="flex items-center justify-between mb-3 pb-3" style="border-bottom: var(--border);">
               <div>
-                <div class="font-medium">${t.topic}</div>
-                <div class="text-xs text-muted" style="color:${t.color}">${t.subject}</div>
+                <div class="font-medium">${UI.escape(t.topic)}</div>
+                <div class="text-xs text-muted" style="color:${t.color}">${UI.escape(t.subject)}</div>
               </div>
               <span class="badge badge-amber">${t.daysAgo}d ago</span>
             </div>
-          `).join('') : UI.emptyState({icon:'check-circle', title:'None forgotten', sub:'Revise regularly to maintain retention.'})}
+          `).join('') : UI.emptyState({icon:'check-circle', title:'None forgotten', sub:'Revise regularly.'})}
         </div>
 
         <div class="card">
-          <div class="card-title mb-4"><i class="i-award text-green"></i>Maintain Strength</div>
+          <h3 class="card-title mb-4"><i data-lucide="award" class="text-green"></i>Maintain Strength</h3>
           ${strong.length ? strong.map(t => `
             <div class="flex items-center justify-between mb-3 pb-3" style="border-bottom: var(--border);">
               <div>
-                <div class="font-medium">${t.topic}</div>
-                <div class="text-xs text-muted" style="color:${t.color}">${t.subject} • ${UI.fmt(t.avgAcc,0)}%</div>
+                <div class="font-medium">${UI.escape(t.topic)}</div>
+                <div class="text-xs text-muted" style="color:${t.color}">${UI.escape(t.subject)} • ${UI.fmt(t.avgAcc,0)}%</div>
               </div>
               <span class="badge badge-green">${t.tests} tests</span>
             </div>
-          `).join('') : UI.emptyState({icon:'trending-up', title:'Build your strengths', sub:'More data needed.'})}
+          `).join('') : UI.emptyState({icon:'trending-up', title:'Build strengths', sub:'More data needed.'})}
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-title mb-4"><i class="i-list"></i>All Tracked Topics</div>
-        ${allTopics.length ? `<div class="table-wrap"><table>
-          <thead><tr><th>Subject</th><th>Topic</th><th>Tests</th><th>Avg Accuracy</th><th>Last Practiced</th><th>Days Ago</th><th>Priority</th></tr></thead>
-          <tbody>
-            ${allTopics.map(t => `<tr>
-              <td><span class="badge" style="background:${t.color}20; color:${t.color}">${t.subject}</span></td>
-              <td class="font-medium">${t.topic}</td>
-              <td>${t.tests}</td>
-              <td><span class="font-mono font-bold ${t.avgAcc>=70?'text-green':t.avgAcc>=55?'text-amber':'text-red'}">${UI.fmt(t.avgAcc,0)}%</span></td>
-              <td class="text-sm text-muted">${UI.fmtDate(t.lastDate)}</td>
-              <td class="font-mono text-sm">${t.daysAgo}</td>
-              <td>${t.daysAgo>14?'<span class="badge badge-red">Overdue</span>':t.daysAgo>7?'<span class="badge badge-amber">Due soon</span>':'<span class="badge badge-green">Current</span>'}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table></div>` : UI.emptyState({icon:'bookmark', title:'No topic data yet', sub:'Tag topics on your tests to see them here.'})}
-      </div>
     `;
+    UI.renderIcons();
   }
 
   /* ---------------- SETTINGS ---------------- */
@@ -2142,108 +2312,100 @@ const Pages = (() => {
     const s = Store.state.settings;
 
     UI.page.innerHTML = `
-      <div class="grid grid-2 mb-4">
+      <div class="settings-section">
+        <h3 class="card-title mb-3"><i data-lucide="layout"></i>Appearance & Preferences</h3>
         <div class="card">
-          <div class="card-title mb-4"><i class="i-sun"></i>Appearance</div>
-          <div class="field">
-            <label>Theme</label>
-            <div class="flex gap-2">
-              <button class="chip ${document.documentElement.dataset.theme==='light'?'active':''}" id="themeLight">Light</button>
-              <button class="chip ${document.documentElement.dataset.theme==='dark'?'active':''}" id="themeDark">Dark</button>
+          <div class="settings-group">
+            <div class="setting-item">
+              <div class="setting-item-label">Theme</div>
+              <div class="flex gap-2">
+                <button class="chip ${document.documentElement.dataset.theme==='light'?'active':''}" id="themeLight">Light</button>
+                <button class="chip ${document.documentElement.dataset.theme==='dark'?'active':''}" id="themeDark">Dark</button>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-item-label">History View</div>
+              <div class="flex gap-2">
+                <button class="chip ${s.historyView==='table'?'active':''}" data-view="table">Table</button>
+                <button class="chip ${s.historyView==='list'?'active':''}" data-view="list">List</button>
+                <button class="chip ${s.historyView==='grid'?'active':''}" data-view="grid">Grid</button>
+              </div>
             </div>
           </div>
-          <div class="field">
-            <label>Animations</label>
-            <div class="flex gap-2">
-              <button class="chip ${s.animation?'active':''}" id="animOn">On</button>
-              <button class="chip ${!s.animation?'active':''}" id="animOff">Off</button>
+          <div class="field mt-4">
+            <label>Text Size (<span id="textSizeLabel">${s.textSize}</span>px)</label>
+            <div class="flex items-center gap-3">
+              <span class="text-xs">8px</span>
+              <input type="range" min="8" max="20" step="1" value="${s.textSize}" id="textSizeSlider" style="flex:1;" />
+              <span class="text-xs">20px</span>
+              <input type="number" min="8" max="20" value="${s.textSize}" id="textSizeInput" class="input" style="width:60px; padding:4px 6px; font-size:12px;" />
             </div>
           </div>
         </div>
+      </div>
 
+      <div class="settings-section">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="card-title"><i data-lucide="book-open"></i>Subjects & Topics</h3>
+          <button class="btn btn-sm btn-primary" id="addSubjectBtn"><i data-lucide="plus"></i>Add Subject</button>
+        </div>
         <div class="card">
-          <div class="card-title mb-4"><i class="i-sliders"></i>Defaults</div>
-          <div class="grid grid-2">
-            <div class="field">
-              <label>Default Questions</label>
-              <input class="input" type="number" id="defQ" value="${s.defaultQuestions}" />
-            </div>
-            <div class="field">
-              <label>Default Time (min)</label>
-              <input class="input" type="number" id="defTime" value="${s.defaultTime}" />
-            </div>
-            <div class="field">
-              <label>Marks per Question</label>
-              <input class="input" type="number" step="0.5" id="defMPQ" value="${s.marksPerQ}" />
-            </div>
-            <div class="field">
-              <label>Negative per Wrong</label>
-              <input class="input" type="number" step="0.05" id="defNeg" value="${s.negative}" />
-            </div>
+          <div id="subjectList"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 class="card-title mb-3"><i data-lucide="tag"></i>Error Tags</h3>
+        <div class="card">
+          <div class="flex gap-2 mb-3">
+            <input class="input" type="text" id="newErrTag" placeholder="New error tag" style="flex:1; max-width:300px;" />
+            <button class="btn btn-sm" id="addErrTag"><i data-lucide="plus"></i>Add</button>
           </div>
-          <button class="btn btn-primary btn-sm mt-2" id="saveDefaults"><i class="i-check"></i>Save Defaults</button>
+          <div class="chip-group" id="errTagList"></div>
         </div>
       </div>
 
-      <div class="card mb-4">
-        <div class="card-header">
-          <div class="card-title"><i class="i-book-open"></i>Subjects</div>
-          <button class="btn btn-sm btn-primary" id="addSubjectBtn"><i class="i-plus"></i>Add Subject</button>
-        </div>
-        <div id="subjectList"></div>
-      </div>
-
-      <div class="card mb-4">
-        <div class="card-header">
-          <div class="card-title"><i class="i-tag"></i>Error Tags</div>
-          <div class="flex gap-2">
-            <input class="input" type="text" id="newErrTag" placeholder="New error tag" style="max-width:200px;" />
-            <button class="btn btn-sm" id="addErrTag"><i class="i-plus"></i>Add</button>
+      <div class="settings-section">
+        <h3 class="card-title mb-3"><i data-lucide="database"></i>Data Management</h3>
+        <div class="card">
+          <div class="flex gap-2 flex-wrap">
+            <button class="btn" id="exportJSON"><i data-lucide="download"></i>Export JSON</button>
+            <button class="btn" id="importBtn"><i data-lucide="upload"></i>Import Data</button>
+            <button class="btn btn-danger" id="resetBtn"><i data-lucide="trash-2"></i>Reset All Data</button>
           </div>
+          <input type="file" id="importFile" accept=".json" style="display:none;" />
+          <div class="text-xs text-muted mt-4">Storage used: <strong id="storageUsed">—</strong></div>
         </div>
-        <div class="chip-group" id="errTagList"></div>
-      </div>
-
-      <div class="card mb-4">
-        <div class="card-header">
-          <div class="card-title"><i class="i-database"></i>Data Management</div>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <button class="btn" id="exportJSON"><i class="i-download"></i>Export JSON</button>
-          <button class="btn" id="exportCSV"><i class="i-file-spreadsheet"></i>Export CSV</button>
-          <button class="btn" id="importBtn"><i class="i-upload"></i>Import Data</button>
-          <button class="btn btn-danger" id="resetBtn"><i class="i-trash-2"></i>Reset All Data</button>
-        </div>
-        <input type="file" id="importFile" accept=".json" style="display:none;" />
-        <div class="text-xs text-muted mt-4">Storage used: <strong id="storageUsed">—</strong></div>
       </div>
     `;
+    UI.renderIcons();
 
     const renderSubjects = () => {
       const list = document.getElementById('subjectList');
       list.innerHTML = Store.state.subjects.map(s => `
-        <div class="flex items-center justify-between gap-3 mb-2 pb-3" style="border-bottom: var(--border);">
+        <div class="flex items-center justify-between gap-3 mb-3 pb-3" style="border-bottom: var(--border);">
           <div class="flex items-center gap-3 flex-1 min-w-0">
-            <div style="width:12px; height:12px; border-radius:3px; background:${s.color};"></div>
+            <div style="width:12px; height:12px; border-radius:3px; background:${s.color}; flex-shrink:0;"></div>
             <div class="min-w-0">
-              <div class="font-medium truncate">${s.name}</div>
+              <div class="font-medium truncate">${UI.escape(s.name)}</div>
               <div class="text-xs text-muted truncate">${s.topics.length} topics • Default: ${s.defaultQuestions}Q / ${s.timeLimit}min</div>
             </div>
           </div>
-          <div class="flex gap-1">
-            <button class="btn btn-sm btn-ghost" data-sub-edit="${s.id}"><i class="i-edit-3"></i></button>
-            <button class="btn btn-sm btn-ghost" data-sub-topics="${s.id}"><i class="i-bookmark"></i></button>
-            <button class="btn btn-sm btn-ghost btn-danger" data-sub-del="${s.id}"><i class="i-trash-2"></i></button>
+          <div class="flex gap-1 flex-shrink-0">
+            <button class="btn btn-sm btn-ghost" data-sub-topics="${s.id}" aria-label="Topics"><i data-lucide="bookmark"></i></button>
+            <button class="btn btn-sm btn-ghost" data-sub-edit="${s.id}" aria-label="Edit"><i data-lucide="edit-3"></i></button>
+            <button class="btn btn-sm btn-ghost btn-danger" data-sub-del="${s.id}" aria-label="Delete"><i data-lucide="trash-2"></i></button>
           </div>
         </div>
       `).join('');
+      UI.renderIcons();
+      
       list.querySelectorAll('[data-sub-edit]').forEach(b => b.onclick = () => editSubject(b.dataset.subEdit));
       list.querySelectorAll('[data-sub-del]').forEach(b => b.onclick = () => {
         const id = b.dataset.subDel;
-        const hasTests = Store.state.tests.some(t => t.subject === id);
         UI.confirm({
           title: 'Delete subject?',
-          message: hasTests ? 'This subject has tests. They will remain but the subject entry will be removed.' : 'This will remove the subject.',
+          message: 'This will remove the subject. Existing tests will remain but lose their subject link.',
           danger: true, okLabel: 'Delete',
           onOk: () => { Store.deleteSubject(id); UI.toast('Deleted','success'); renderSubjects(); }
         });
@@ -2256,7 +2418,7 @@ const Pages = (() => {
       const m = UI.modal({
         title: id ? 'Edit Subject' : 'New Subject',
         body: `
-          <div class="field"><label>Name</label><input class="input" id="m-name" value="${s.name||''}" /></div>
+          <div class="field"><label>Name</label><input class="input" id="m-name" value="${UI.escape(s.name)||''}" /></div>
           <div class="grid grid-2">
             <div class="field"><label>Color</label><input class="input" id="m-color" type="color" value="${s.color||'#2563eb'}" /></div>
             <div class="field"><label>Default Questions</label><input class="input" id="m-q" type="number" value="${s.defaultQuestions}" /></div>
@@ -2289,63 +2451,92 @@ const Pages = (() => {
     const manageTopics = (subjectId) => {
       const s = Store.state.subjects.find(x=>x.id===subjectId);
       const m = UI.modal({
-        title: `${s.name} — Topics`,
+        title: `${UI.escape(s.name)} — Topics`,
         body: `
-          <div class="flex gap-2 mb-4">
-            <input class="input" id="m-newtopic" placeholder="Add topic" />
-            <button class="btn btn-sm btn-primary" id="m-addtopic"><i class="i-plus"></i></button>
+          <div class="flex gap-2 mb-3">
+            <input class="input" id="m-newtopic" placeholder="Add new topic" style="flex:1;" />
+            <button class="btn btn-sm btn-primary" id="m-addtopic"><i data-lucide="plus"></i></button>
           </div>
-          <div id="m-topiclist">
+          <div class="topic-list" id="m-topiclist">
             ${s.topics.length ? s.topics.map(t => `
-              <div class="flex items-center gap-2 mb-2 pb-2" style="border-bottom: var(--border);">
-                <input class="input topic-val" data-old="${t}" value="${t}" style="flex:1;" />
-                <button class="btn btn-sm btn-ghost btn-danger topic-del" data-topic="${t}"><i class="i-trash-2"></i></button>
+              <div class="topic-item" data-topic="${UI.escape(t)}">
+                <input type="text" class="topic-val" value="${UI.escape(t)}" />
+                <button class="btn btn-sm btn-ghost btn-danger topic-del" aria-label="Delete"><i data-lucide="trash-2"></i></button>
               </div>
-            `).join('') : '<div class="text-sm text-muted">No topics yet.</div>'}
+            `).join('') : '<div class="text-sm text-muted" style="padding:12px;">No topics yet.</div>'}
           </div>
         `,
         footer: `<button class="btn btn-sm" data-close>Done</button>`,
       });
-      m.root.querySelector('#m-addtopic').onclick = () => {
-        const v = m.root.querySelector('#m-newtopic').value.trim();
+      UI.renderIcons();
+      
+      const addTopic = () => {
+        const inp = m.root.querySelector('#m-newtopic');
+        const v = inp.value.trim();
         if (!v) return;
         Store.addTopic(subjectId, v);
+        inp.value = '';
+        UI.toast('Topic added','success');
         m.close();
         manageTopics(subjectId);
       };
+      
+      m.root.querySelector('#m-addtopic').onclick = addTopic;
+      m.root.querySelector('#m-newtopic').onkeydown = (e) => { if(e.key === 'Enter') { e.preventDefault(); addTopic(); } };
+      
       m.root.querySelectorAll('.topic-del').forEach(b => b.onclick = () => {
-        Store.removeTopic(subjectId, b.dataset.topic);
+        const topicName = b.closest('.topic-item').dataset.topic;
+        Store.removeTopic(subjectId, topicName);
+        UI.toast('Topic removed','success');
         m.close();
         manageTopics(subjectId);
       });
-      m.root.querySelectorAll('.topic-val').forEach(inp => inp.onchange = () => {
-        if (inp.value !== inp.dataset.old && inp.value.trim()) {
-          Store.renameTopic(subjectId, inp.dataset.old, inp.value.trim());
-        }
+      
+      m.root.querySelectorAll('.topic-val').forEach(inp => {
+        inp.onblur = () => {
+          const oldName = inp.closest('.topic-item').dataset.topic;
+          const newName = inp.value.trim();
+          if (newName && newName !== oldName) {
+            Store.renameTopic(subjectId, oldName, newName);
+            UI.toast('Topic renamed','success');
+          } else if (!newName) {
+            inp.value = oldName;
+          }
+        };
+        inp.onkeydown = (e) => { if(e.key === 'Enter') inp.blur(); };
       });
     };
 
     const renderErrTags = () => {
       const list = document.getElementById('errTagList');
-      list.innerHTML = Store.state.errorTags.map(t => `<div class="chip chip-removable" data-del-err="${t}">${t}</div>`).join('');
+      list.innerHTML = Store.state.errorTags.map(t => `<div class="chip chip-removable" data-del-err="${UI.escape(t)}">${UI.escape(t)}</div>`).join('');
       list.querySelectorAll('[data-del-err]').forEach(c => c.onclick = () => {
-        UI.confirm({title:'Delete error tag?', message:`Delete "${c.dataset.delErr}"? Existing tests will retain the tag text.`, danger:true, okLabel:'Delete', onOk:() => { Store.removeErrorTag(c.dataset.delErr); renderErrTags(); UI.toast('Deleted','success'); }});
+        UI.confirm({title:'Delete error tag?', message:`Delete "${c.dataset.delErr}"?`, danger:true, okLabel:'Delete', onOk:() => { Store.removeErrorTag(c.dataset.delErr); renderErrTags(); UI.toast('Deleted','success'); }});
       });
     };
 
+    // Event Listeners
     document.getElementById('themeLight').onclick = () => { App.setTheme('light'); settings(); };
     document.getElementById('themeDark').onclick = () => { App.setTheme('dark'); settings(); };
-    document.getElementById('animOn').onclick = () => { Store.updateSettings({animation:true}); settings(); };
-    document.getElementById('animOff').onclick = () => { Store.updateSettings({animation:false}); settings(); };
-    document.getElementById('saveDefaults').onclick = () => {
-      Store.updateSettings({
-        defaultQuestions: +document.getElementById('defQ').value,
-        defaultTime: +document.getElementById('defTime').value,
-        marksPerQ: +document.getElementById('defMPQ').value,
-        negative: +document.getElementById('defNeg').value,
-      });
-      UI.toast('Defaults saved','success');
+    
+    document.querySelectorAll('[data-view]').forEach(b => {
+      b.onclick = () => {
+        Store.updateSettings({historyView: b.dataset.view});
+        settings();
+      };
+    });
+
+    const updateTextSize = (val) => {
+      const size = Math.max(8, Math.min(20, parseInt(val) || 14));
+      Store.updateSettings({textSize: size});
+      document.getElementById('textSizeLabel').textContent = size;
+      document.getElementById('textSizeSlider').value = size;
+      document.getElementById('textSizeInput').value = size;
+      UI.applyTextSize();
     };
+    document.getElementById('textSizeSlider').oninput = (e) => updateTextSize(e.target.value);
+    document.getElementById('textSizeInput').onchange = (e) => updateTextSize(e.target.value);
+
     document.getElementById('addSubjectBtn').onclick = () => editSubject(null);
     document.getElementById('addErrTag').onclick = () => {
       const v = document.getElementById('newErrTag').value.trim();
@@ -2355,23 +2546,16 @@ const Pages = (() => {
       document.getElementById('newErrTag').value = '';
       renderErrTags();
     };
+    
     document.getElementById('exportJSON').onclick = () => {
       const blob = new Blob([Store.exportJSON()], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `analytica-backup-${new Date().toISOString().split('T')[0]}.json`;
       a.click(); URL.revokeObjectURL(url);
-      Store.updateSettings({lastBackup: Date.now()});
       UI.toast('JSON exported','success');
     };
-    document.getElementById('exportCSV').onclick = () => {
-      const blob = new Blob([Store.exportCSV()], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `analytica-tests-${new Date().toISOString().split('T')[0]}.csv`;
-      a.click(); URL.revokeObjectURL(url);
-      UI.toast('CSV exported','success');
-    };
+    
     document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
     document.getElementById('importFile').onchange = (e) => {
       const file = e.target.files[0];
@@ -2384,8 +2568,7 @@ const Pages = (() => {
             title: 'Import Data',
             body: `<p class="mb-4 text-sm text-muted">Choose how to merge this backup:</p>
               <div class="flex flex-col gap-2">
-                <button class="btn" data-mode="merge"><strong>Merge</strong> — add new tests, skip existing</button>
-                <button class="btn" data-mode="update"><strong>Update</strong> — update existing, add new</button>
+                <button class="btn" data-mode="merge"><strong>Merge</strong> — add new, skip existing</button>
                 <button class="btn btn-danger" data-mode="overwrite"><strong>Overwrite</strong> — replace everything</button>
               </div>`,
             footer: `<button class="btn btn-sm" data-close>Cancel</button>`,
@@ -2406,6 +2589,7 @@ const Pages = (() => {
       };
       reader.readAsText(file);
     };
+    
     document.getElementById('resetBtn').onclick = () => {
       UI.confirm({title:'Reset all data?', message:'This will delete all tests, subjects, and settings. This cannot be undone.', danger:true, okLabel:'Reset Everything', onOk:() => {
         Store.reset();
@@ -2414,7 +2598,6 @@ const Pages = (() => {
       }});
     };
 
-    // storage used
     try {
       const bytes = new Blob([localStorage.getItem('analytica.v1')||'']).size;
       document.getElementById('storageUsed').textContent = (bytes/1024).toFixed(1) + ' KB';
@@ -2424,28 +2607,23 @@ const Pages = (() => {
     renderErrTags();
   }
 
-  return { dashboard, add, history, analytics, revision, settings };
+  return { dashboard, add, testDetail, history, analytics, revision, settings };
 })();
 
-/* ---------------------------------------------------------
-   APP — orchestration
---------------------------------------------------------- */
+/* =========================================================
+   APP
+========================================================= */
 const App = (() => {
-  const pageTitles = {
-    dashboard: {icon:'home', title:'Dashboard'},
-    add: {icon:'edit-3', title:'Add Test'},
-    history: {icon:'history', title:'History'},
-    analytics: {icon:'bar-chart-3', title:'Analytics'},
-    revision: {icon:'book-open', title:'Revision'},
-    settings: {icon:'settings', title:'Settings'},
-  };
-
   function setTheme(theme) {
     document.documentElement.dataset.theme = theme;
     Store.updateSettings({theme});
     localStorage.setItem('analytica.theme', theme);
     const btn = document.getElementById('themeToggle');
-    btn.innerHTML = theme === 'dark' ? '<i class="i-sun"></i>' : '<i class="i-moon"></i>';
+    btn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+    UI.renderIcons();
+    
+    const meta = document.getElementById('themeColorMeta');
+    if(meta) meta.content = theme === 'dark' ? '#0a0a0b' : '#ffffff';
   }
 
   function initTheme() {
@@ -2458,12 +2636,15 @@ const App = (() => {
     document.querySelectorAll('.nav-item, .bottomnav button').forEach(b => {
       b.classList.toggle('active', b.dataset.nav === page);
     });
+    
     if (page === 'dashboard') Pages.dashboard();
     else if (page === 'add') Pages.add(params.editId);
+    else if (page === 'testDetail') Pages.testDetail(params.id);
     else if (page === 'history') Pages.history();
     else if (page === 'analytics') Pages.analytics();
     else if (page === 'revision') Pages.revision();
     else if (page === 'settings') Pages.settings();
+    
     window.scrollTo({top:0, behavior: 'smooth'});
   }
 
@@ -2511,26 +2692,22 @@ const App = (() => {
 
   function init() {
     initTheme();
+    UI.applyTextSize();
 
-    // Nav handlers
     document.querySelectorAll('[data-nav]').forEach(b => {
       b.onclick = () => nav(b.dataset.nav);
     });
 
-    // Theme toggle
     document.getElementById('themeToggle').onclick = () => {
       setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
     };
 
-    // FAB
     document.getElementById('fab').onclick = () => nav('add');
 
-    // Keyboard shortcut
     document.addEventListener('keydown', e => {
       if (e.key === 'n' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) nav('add');
     });
 
-    // Seed demo data if empty
     if (Store.state.tests.length === 0) {
       setTimeout(() => {
         UI.modal({
@@ -2551,24 +2728,15 @@ const App = (() => {
       }, 300);
     }
 
-    // Backup reminder
-    const lastBackup = Store.state.settings.lastBackup;
-    if (lastBackup && (Date.now() - lastBackup) > 7*86400000) {
-      setTimeout(() => UI.toast('Consider backing up your data', 'warn'), 1500);
-    }
-
     nav('dashboard');
   }
 
   return { init, nav, setTheme };
 })();
 
-// Boot
 window.Pages = Pages;
 window.App = App;
 document.addEventListener('DOMContentLoaded', App.init);
 </script>
-<script src="github-backup.js"></script>
 </body>
 </html>
-/html>
