@@ -83,7 +83,39 @@
   --chart-grid: rgba(255,255,255,0.06);
   --chart-text: #a1a1aa;
 }
+[data-theme="amoled"] {
+  --c-bg: #000000;
+  --c-surface: #080808;
+  --c-surface-2: #121212;
+  --c-surface-3: #1c1c1c;
+  --c-border: #262626;
+  --c-border-strong: #333333;
+  --c-text: #ffffff;
+  --c-text-2: #cccccc;
+  --c-text-3: #888888;
+  --c-muted: #000000;
 
+  --c-blue: #3b82f6;
+  --c-blue-bg: rgba(59,130,246,0.15);
+  --c-blue-border: rgba(59,130,246,0.4);
+
+  --c-green: #22c55e;
+  --c-green-bg: rgba(34,197,94,0.15);
+  --c-green-border: rgba(34,197,94,0.4);
+
+  --c-red: #ef4444;
+  --c-red-bg: rgba(239,68,68,0.15);
+  --c-red-border: rgba(239,68,68,0.4);
+
+  --c-amber: #f59e0b;
+  --c-amber-bg: rgba(245,158,11,0.15);
+  --c-amber-border: rgba(245,158,11,0.4);
+
+  --c-accent: var(--c-blue);
+
+  --chart-grid: rgba(255,255,255,0.08);
+  --chart-text: #cccccc;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
@@ -548,13 +580,12 @@ tbody tr[data-clickable] { cursor: pointer; }
 }
 
 /* HISTORY FILTERS - MOBILE OPTIMIZED */
-.history-filters {
-  display: flex;
-  gap: var(--s-2);
-  align-items: center;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 4px;
+.history-filters {  
+  display: grid;  
+  grid-template-columns: repeat(4, 1fr);  
+  gap: var(--s-2);  
+  align-items: center;  
+  overflow: hidden;
 }
 .history-filters > * {
   flex-shrink: 0;
@@ -674,9 +705,10 @@ tbody tr[data-clickable] { cursor: pointer; }
   .history-filters {
     gap: var(--s-1);
   }
-  .history-filters .select,
-  .history-filters .input-search {
-    min-width: 100px;
+  .history-filters .select,  
+.history-filters .input-search {  
+  min-width: 0; /* allow equal shrink inside grid */  
+  width: 100%;
     font-size: 11px;
     padding: 5px 24px 5px 6px;
   }
@@ -1122,15 +1154,38 @@ const Analytics = (() => {
   }
 
   function topicStats(subjectId='all') {
-    const map = new Map();
-    const list = subjectId === 'all' ? tests() : tests().filter(t => t.subject === subjectId);
-    for (const t of list) {
-      for (const topic of (t.topics || [])) {
-        if (!map.has(topic)) map.set(topic, { topic, count:0, marks:0, accuracySum:0, wrongSum:0 });
-        const x = map.get(topic);
-        x.count++; x.marks += (t.marks||0); x.accuracySum += (t.accuracy||0); x.wrongSum += (t.wrong||0);
+  const map = new Map();
+  const list = subjectId === 'all' ? tests() : tests().filter(t => t.subject === subjectId);
+
+  for (const t of list) {
+    for (const topic of (t.topics || [])) {
+
+      if (!map.has(topic)) {
+        map.set(topic, {
+          topic,
+          count: 0,
+          marks: 0,
+          accuracySum: 0,
+          wrongSum: 0,
+          weakCount: 0,
+          errorTagCount: 0
+        });
       }
+
+      const x = map.get(topic);
+
+      x.count++; 
+      x.marks += (t.marks || 0); 
+      x.accuracySum += (t.accuracy || 0); 
+      x.wrongSum += (t.wrong || 0);
+
+      if ((t.accuracy || 0) < 60) {
+        x.weakCount++; // weak attempt threshold
+      }
+
+      x.errorTagCount += (t.errorTypes || []).length; // total error tags
     }
+  }
     const arr = [...map.values()].map(x => ({ ...x, avgAccuracy: x.accuracySum/x.count, avgMarks: x.marks/x.count }));
     return arr;
   }
@@ -1747,7 +1802,7 @@ const Pages = (() => {
   }
 
   /* ---------------- TEST DETAIL ---------------- */
-  function testDetail(id) {
+    function testDetail(id) {
     const test = Store.state.tests.find(t => t.id === id);
     if (!test) {
       UI.page.innerHTML = UI.emptyState({icon:'alert-circle', title:'Test not found', sub:'This test may have been deleted.', action:'<button class="btn btn-primary" onclick="App.nav(\'history\')">Back to History</button>'});
@@ -1759,12 +1814,26 @@ const Pages = (() => {
     const subject = Store.state.subjects.find(s => s.id === test.subject);
     const accColor = test.accuracy >= 70 ? 'text-green' : test.accuracy >= 55 ? 'text-amber' : 'text-red';
 
+    // Calculate Prev/Next dynamically based on History sort order
+    const sortedTests = [...Store.state.tests].sort((a,b) => new Date(b.date) - new Date(a.date));
+    const currentIndex = sortedTests.findIndex(t => t.id === id);
+    const prevTest = currentIndex < sortedTests.length - 1 ? sortedTests[currentIndex + 1] : null;
+    const nextTest = currentIndex > 0 ? sortedTests[currentIndex - 1] : null;
+
     UI.page.innerHTML = `
-      <div class="flex items-center justify-between mb-4">
-        <button class="btn btn-sm btn-ghost" onclick="App.nav('history')"><i data-lucide="arrow-left"></i>Back</button>
-        <div class="flex gap-2">
-          <button class="btn btn-sm" id="editTestBtn"><i data-lucide="edit-3"></i>Edit</button>
-          <button class="btn btn-sm btn-danger" id="deleteTestBtn"><i data-lucide="trash-2"></i>Delete</button>
+      <div class="flex items-center justify-between mb-4" style="gap: 8px;">
+        <button class="btn btn-sm btn-ghost" style="flex:1;" ${prevTest ? `onclick="App.nav('testDetail', { id: '${prevTest.id}' })"` : 'disabled'}>
+          <i data-lucide="arrow-left"></i> Prev
+        </button>
+        <button class="btn btn-sm btn-ghost" style="flex:1;" onclick="App.nav('history')"><i data-lucide="list"></i> All</button>
+        <button class="btn btn-sm btn-ghost" style="flex:1;" ${nextTest ? `onclick="App.nav('testDetail', { id: '${nextTest.id}' })"` : 'disabled'}>
+          Next <i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+      
+      <div class="flex items-center justify-end mb-4 gap-2">
+        <button class="btn btn-sm" id="editTestBtn"><i data-lucide="edit-3"></i>Edit</button>
+        <button class="btn btn-sm btn-danger" id="deleteTestBtn"><i data-lucide="trash-2"></i>Delete</button>
         </div>
       </div>
 
@@ -1850,15 +1919,18 @@ const Pages = (() => {
       </div>
       ` : ''}
 
-      <!-- TOPICS COVERED -->
-      ${test.topics && test.topics.length ? `
-      <div class="detail-section">
-        <h3 class="card-title mb-3"><i data-lucide="bookmark"></i>Topics Covered</h3>
-        <div class="chip-group">
-          ${test.topics.map(t => `<span class="badge badge-blue">${UI.escape(t)}</span>`).join('')}
-        </div>
-      </div>
-      ` : ''}
+    <!-- WEAK TOPICS & PERFORMANCE -->
+${test.topics && test.topics.length ? `
+<div class="detail-section">
+  <h3 class="card-title mb-3"><i data-lucide="alert-triangle"></i>Topic Performance</h3>
+  <div class="chip-group">
+    ${test.topics.map(t => {
+      const isWeak = Analytics.weakTopics(test.subject).some(w => w.topic === t);
+      return `<span class="badge ${isWeak ? 'badge-red' : 'badge-blue'}">${UI.escape(t)} ${isWeak ? '(Weak)' : ''}</span>`;
+    }).join('')}
+  </div>
+</div>
+` : ''}
 
       <!-- REFLECTION NOTES -->
       ${test.notes ? `
@@ -1919,11 +1991,11 @@ const Pages = (() => {
       <div class="card mb-4">
         <div class="history-filters">
           <select class="select" id="histSubject">
-            <option value="">All Subjects</option>
+            <option value="">Subject</option>
             ${Store.state.subjects.map(s => `<option value="${s.id}">${UI.escape(s.name)}</option>`).join('')}
           </select>
           <select class="select" id="histDiff">
-            <option value="">All Difficulties</option>
+            <option value="">Difficulty</option>
             <option>Easy</option><option>Moderate</option><option>Hard</option>
           </select>
           <select class="select" id="histSort">
@@ -2319,8 +2391,9 @@ const Pages = (() => {
             <div class="setting-item">
               <div class="setting-item-label">Theme</div>
               <div class="flex gap-2">
-                <button class="chip ${document.documentElement.dataset.theme==='light'?'active':''}" id="themeLight">Light</button>
-                <button class="chip ${document.documentElement.dataset.theme==='dark'?'active':''}" id="themeDark">Dark</button>
+<button class="chip ${document.documentElement.dataset.theme==='light'?'active':''}" id="themeLight">Day</button>
+<button class="chip ${document.documentElement.dataset.theme==='dark'?'active':''}" id="themeDark">Dark</button>
+<button class="chip ${document.documentElement.dataset.theme==='amoled'?'active':''}" id="themeAmoled">AMOLED</button>
               </div>
             </div>
             <div class="setting-item">
@@ -2515,9 +2588,10 @@ const Pages = (() => {
       });
     };
 
-    // Event Listeners
-    document.getElementById('themeLight').onclick = () => { App.setTheme('light'); settings(); };
-    document.getElementById('themeDark').onclick = () => { App.setTheme('dark'); settings(); };
+    // Event Listeners:
+document.getElementById('themeLight').onclick = () => { App.setTheme('light'); settings(); };
+document.getElementById('themeDark').onclick = () => { App.setTheme('dark'); settings(); };
+document.getElementById('themeAmoled').onclick = () => { App.setTheme('amoled'); settings(); };
     
     document.querySelectorAll('[data-view]').forEach(b => {
       b.onclick = () => {
@@ -2699,7 +2773,7 @@ const App = (() => {
     });
 
     document.getElementById('themeToggle').onclick = () => {
-      setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+      setTheme(document.documentElement.dataset.theme === 'amoled' ? 'light' : 'amoled');
     };
 
     document.getElementById('fab').onclick = () => nav('add');
