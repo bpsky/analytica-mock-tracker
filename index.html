@@ -219,6 +219,13 @@ svg.lucide {
   font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
   display: flex; align-items: center; gap: var(--s-2);
 }
+.page-title-wrap {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.page-sub {
+  font-size: 11px; color: var(--c-text-3); font-weight: 400; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
 
 .content { padding: var(--s-6); max-width: 1400px; width: 100%; margin: 0 auto; }
@@ -792,7 +799,10 @@ tbody tr[data-clickable] { cursor: pointer; }
 
   <main class="main">
     <header class="topbar">
-      <h2 class="page-title" id="pageTitle"><i data-lucide="home"></i>Dashboard</h2>
+      <div class="page-title-wrap">
+        <h2 class="page-title" id="pageTitle"><i data-lucide="home"></i>Dashboard</h2>
+        <div class="page-sub" id="lastUpdatedLine" title="">Last updated: —</div>
+      </div>
       <div class="topbar-actions">
         <div class="chip-group" id="globalFilterChips" style="display:none"></div>
         <button class="btn btn-sm btn-ghost" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
@@ -859,6 +869,7 @@ const Store = (() => {
       subjects: JSON.parse(JSON.stringify(DEFAULT_SUBJECTS)),
       errorTags: [...DEFAULT_ERROR_TAGS],
       tests: [],
+      lastUpdated: null,
     };
   }
 
@@ -871,6 +882,7 @@ const Store = (() => {
       data.subjects = data.subjects || JSON.parse(JSON.stringify(DEFAULT_SUBJECTS));
       data.errorTags = data.errorTags || [...DEFAULT_ERROR_TAGS];
       data.tests = data.tests || [];
+      data.lastUpdated = data.lastUpdated ?? null;
       return data;
     } catch(e) {
       console.error(e);
@@ -880,6 +892,7 @@ const Store = (() => {
 
   function save(data) {
     try {
+      data.lastUpdated = Date.now();
       localStorage.setItem(KEY, JSON.stringify(data));
     } catch(e) {
       UI.toast('Storage failed: '+e.message, 'error');
@@ -1068,6 +1081,26 @@ const UI = (() => {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
+  function fmtLastUpdated(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (isNaN(d)) return '—';
+    const diff = Date.now() - d.getTime();
+    if (diff < 60 * 1000) return 'Just now';
+    if (diff < 60 * 60 * 1000) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 24 * 60 * 60 * 1000) return Math.floor(diff / 3600000) + 'h ago';
+    if (diff < 7 * 24 * 60 * 60 * 1000) return Math.floor(diff / 86400000) + 'd ago';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function refreshLastUpdated() {
+    const line = document.getElementById('lastUpdatedLine');
+    if (!line) return;
+    const ts = Store.state.lastUpdated;
+    line.textContent = 'Last updated: ' + fmtLastUpdated(ts);
+    line.title = ts ? 'Last updated ' + new Date(ts).toLocaleString() : 'Your data has never been updated';
+  }
+
   function subjectColor(id) {
     const s = Store.state.subjects.find(s => s.id === id);
     return s ? s.color : '#64748b';
@@ -1080,6 +1113,7 @@ const UI = (() => {
   function setPageTitle(icon, title) {
     el('pageTitle').innerHTML = `<i data-lucide="${icon}"></i>${escape(title)}`;
     renderIcons();
+    refreshLastUpdated();
   }
 
   function kpi(label, value, sub, icon='trending-up', trend) {
@@ -1105,7 +1139,7 @@ const UI = (() => {
     document.documentElement.style.setProperty('--font-size-base', size + 'px');
   }
 
-  return { el, toast, modal, confirm, fmt, fmtDate, fmtDateShort, subjectColor, subjectName, setPageTitle, kpi, emptyState, page, escape, renderIcons, applyTextSize };
+  return { el, toast, modal, confirm, fmt, fmtDate, fmtDateShort, fmtLastUpdated, refreshLastUpdated, subjectColor, subjectName, setPageTitle, kpi, emptyState, page, escape, renderIcons, applyTextSize };
 })();
 
 /* =========================================================
