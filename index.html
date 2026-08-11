@@ -1792,10 +1792,12 @@ const Pages = (() => {
       if (editId) {
         Store.updateTest(editId, data);
         UI.toast('Test updated','success');
+        CloudSync.autoPushIfEnabled();
         App.nav('testDetail', { id: editId });
       } else {
         const newTest = Store.addTest(data);
         UI.toast('Test saved','success');
+        CloudSync.autoPushIfEnabled();
         App.nav('testDetail', { id: newTest.id });
       }
     });
@@ -2450,6 +2452,59 @@ ${test.topics && test.topics.length ? `
           <div class="text-xs text-muted mt-4">Storage used: <strong id="storageUsed">—</strong></div>
         </div>
       </div>
+
+      <div class="settings-section">
+        <h3 class="card-title mb-3"><i data-lucide="cloud"></i>Cloud Sync</h3>
+        <div class="card">
+          <p class="text-sm text-muted mb-4">Sync your data to the cloud using a <strong>GitHub Gist</strong> as secure storage. Your data is saved as a secret Gist on your GitHub account — only you can access it.</p>
+
+          <div id="cloudStatus" class="mb-4" style="display:none;">
+            <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--c-green-bg); border:1px solid var(--c-green-border); border-radius:var(--radius); font-size:12px; color:var(--c-green);">
+              <i data-lucide="check-circle"></i>
+              <span id="cloudStatusText">Connected</span>
+            </div>
+          </div>
+
+          <div id="cloudLastSync" class="text-xs text-muted mb-4" style="display:none;">
+            Last synced: <strong id="cloudLastSyncTime">—</strong>
+          </div>
+
+          <div class="flex gap-2 flex-wrap mb-4">
+            <button class="btn btn-primary" id="cloudPushBtn" style="flex:1; min-width:140px;">
+              <i data-lucide="cloud-upload"></i>Push to Cloud
+            </button>
+            <button class="btn" id="cloudPullBtn" style="flex:1; min-width:140px;">
+              <i data-lucide="cloud-download"></i>Pull from Cloud
+            </button>
+          </div>
+
+          <div style="border-top: var(--border); padding-top: var(--s-4);">
+            <label class="text-xs font-semibold text-muted" style="text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:8px;">
+              <i data-lucide="key"></i> GitHub Personal Access Token
+            </label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="password" id="cloudTokenInput" class="input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex:1;" />
+              <button class="btn btn-sm" id="cloudSaveTokenBtn">Save</button>
+            </div>
+            <p class="text-xs text-muted mt-2">
+              Create one at <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a> with <strong>gist</strong> scope.
+              Stored only in your browser's localStorage.
+            </p>
+          </div>
+
+          <div id="cloudGistInfo" class="text-xs text-muted mt-3" style="display:none;">
+            Gist ID: <code id="cloudGistId" style="font-family:var(--font-mono); background:var(--c-surface-2); padding:2px 6px; border-radius:4px;"></code>
+            <a id="cloudGistLink" href="#" target="_blank" rel="noopener" style="margin-left:8px;">View on GitHub ↗</a>
+          </div>
+
+          <div style="margin-top: var(--s-4); border-top: var(--border); padding-top: var(--s-4);">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+              <input type="checkbox" id="cloudAutoSync" style="width:16px; height:16px; accent-color:var(--c-blue);" />
+              Auto-sync after each test entry
+            </label>
+          </div>
+        </div>
+      </div>
     `;
     UI.renderIcons();
 
@@ -2679,9 +2734,330 @@ document.getElementById('themeAmoled').onclick = () => { App.setTheme('amoled');
 
     renderSubjects();
     renderErrTags();
+
+    // Initialize Cloud Sync UI
+    CloudSync.initSettingsUI();
   }
 
   return { dashboard, add, testDetail, history, analytics, revision, settings };
+})();
+
+/* =========================================================
+   CLOUD SYNC (GitHub Gist)
+========================================================= */
+const CloudSync = (() => {
+  const GIST_DESC = 'Analytica Mock Tracker — Cloud Backup';
+  const GIST_FILE = 'analytica-backup.json';
+  const TOKEN_KEY = 'analytica.cloudToken';
+  const GIST_ID_KEY = 'analytica.cloudGistId';
+  const LAST_SYNC_KEY = 'analytica.cloudLastSync';
+  const AUTO_SYNC_KEY = 'analytica.cloudAutoSync';
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+  function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+  function getGistId() { return localStorage.getItem(GIST_ID_KEY) || ''; }
+  function setGistId(id) { localStorage.setItem(GIST_ID_KEY, id); }
+  function getLastSync() { return localStorage.getItem(LAST_SYNC_KEY) || ''; }
+  function setLastSync(ts) { localStorage.setItem(LAST_SYNC_KEY, ts); }
+  function isAutoSync() { return localStorage.getItem(AUTO_SYNC_KEY) === 'true'; }
+  function setAutoSync(v) { localStorage.setItem(AUTO_SYNC_KEY, v ? 'true' : 'false'); }
+
+  function headers() {
+    return {
+      'Authorization': `token ${getToken()}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    };
+  }
+
+  function buildPayload() {
+    return {
+      metadata: {
+        app: 'analytica-mock-tracker',
+        version: '2.0',
+        syncedAt: new Date().toISOString(),
+        testCount: Store.state.tests.length,
+      },
+      data: JSON.parse(Store.exportJSON()),
+    };
+  }
+
+  async function findExistingGist() {
+    const resp = await fetch('https://api.github.com/gists?per_page=100', { headers: headers() });
+    if (!resp.ok) throw new Error(`Failed to list gists (${resp.status})`);
+    const gists = await resp.json();
+    return gists.find(g => g.description === GIST_DESC && g.files[GIST_FILE]);
+  }
+
+  async function push() {
+    if (!getToken()) throw new Error('No GitHub token set. Add your Personal Access Token first.');
+
+    UI.toast('Pushing data to cloud…', 'info');
+
+    let gistId = getGistId();
+    const payload = buildPayload();
+    const body = {
+      description: GIST_DESC,
+      public: false,
+      files: { [GIST_FILE]: { content: JSON.stringify(payload, null, 2) } },
+    };
+
+    try {
+      if (gistId) {
+        // Try to update existing gist
+        const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'PATCH', headers: headers(), body: JSON.stringify(body),
+        });
+        if (resp.status === 404) {
+          // Gist was deleted remotely, clear and re-create
+          gistId = '';
+        } else if (!resp.ok) {
+          throw new Error(`Update failed (${resp.status})`);
+        } else {
+          const now = new Date().toISOString();
+          setLastSync(now);
+          UI.toast('✅ Data pushed to cloud!', 'success');
+          return { gistId, isNew: false };
+        }
+      }
+
+      if (!gistId) {
+        // Check if gist exists but ID not saved locally
+        const existing = await findExistingGist();
+        if (existing) {
+          gistId = existing.id;
+          setGistId(gistId);
+          const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH', headers: headers(), body: JSON.stringify(body),
+          });
+          if (!resp.ok) throw new Error(`Update failed (${resp.status})`);
+          const now = new Date().toISOString();
+          setLastSync(now);
+          UI.toast('✅ Data pushed to cloud!', 'success');
+          return { gistId, isNew: false };
+        }
+
+        // Create new gist
+        const resp = await fetch('https://api.github.com/gists', {
+          method: 'POST', headers: headers(), body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.message || `Create failed (${resp.status})`);
+        }
+        const data = await resp.json();
+        setGistId(data.id);
+        const now = new Date().toISOString();
+        setLastSync(now);
+        UI.toast('✅ Data pushed to cloud! New Gist created.', 'success');
+        return { gistId: data.id, isNew: true };
+      }
+    } catch (e) {
+      UI.toast('❌ Push failed: ' + e.message, 'error');
+      throw e;
+    }
+  }
+
+  async function pull() {
+    if (!getToken()) throw new Error('No GitHub token set. Add your Personal Access Token first.');
+
+    UI.toast('Pulling data from cloud…', 'info');
+
+    try {
+      let gistId = getGistId();
+
+      if (!gistId) {
+        const existing = await findExistingGist();
+        if (!existing) throw new Error('No cloud backup found. Push data first.');
+        gistId = existing.id;
+        setGistId(gistId);
+      }
+
+      const resp = await fetch(`https://api.github.com/gists/${gistId}`, { headers: headers() });
+      if (!resp.ok) {
+        if (resp.status === 404) {
+          setGistId('');
+          throw new Error('Cloud backup not found. Push data first.');
+        }
+        throw new Error(`Fetch failed (${resp.status})`);
+      }
+
+      const gist = await resp.json();
+      const file = gist.files[GIST_FILE];
+      if (!file) throw new Error('Backup file missing from Gist.');
+
+      const backup = JSON.parse(file.content);
+      const cloudData = backup.data || backup;
+
+      // Show merge dialog
+      return new Promise((resolve) => {
+        const m = UI.modal({
+          title: 'Pull from Cloud',
+          body: `
+            <div class="text-sm mb-4">
+              <p class="mb-2">Cloud backup contains <strong>${cloudData.tests?.length || 0} tests</strong></p>
+              <p class="text-muted">Synced: ${backup.metadata?.syncedAt ? new Date(backup.metadata.syncedAt).toLocaleString() : 'Unknown'}</p>
+              <p class="text-muted">Local: <strong>${Store.state.tests.length} tests</strong></p>
+            </div>
+            <p class="text-sm mb-4">How would you like to import?</p>
+            <div class="flex flex-col gap-2">
+              <button class="btn" data-mode="merge"><strong>Merge</strong> — add new tests, keep existing</button>
+              <button class="btn" data-mode="update"><strong>Update</strong> — merge + update changed tests</button>
+              <button class="btn btn-danger" data-mode="overwrite"><strong>Overwrite</strong> — replace all local data</button>
+            </div>
+          `,
+          footer: `<button class="btn btn-sm" data-close>Cancel</button>`,
+        });
+        m.root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+          try {
+            Store.importData(cloudData, b.dataset.mode);
+            const now = new Date().toISOString();
+            setLastSync(now);
+            m.close();
+            UI.toast('✅ Data pulled from cloud!', 'success');
+            resolve(true);
+          } catch (err) {
+            UI.toast('❌ Import failed: ' + err.message, 'error');
+            resolve(false);
+          }
+        });
+      });
+    } catch (e) {
+      UI.toast('❌ Pull failed: ' + e.message, 'error');
+      throw e;
+    }
+  }
+
+  async function autoPushIfEnabled() {
+    if (!isAutoSync() || !getToken()) return;
+    try {
+      await push();
+    } catch (e) {
+      console.warn('Auto-sync failed:', e);
+    }
+  }
+
+  function initSettingsUI() {
+    const tokenInput = document.getElementById('cloudTokenInput');
+    const saveBtn = document.getElementById('cloudSaveTokenBtn');
+    const pushBtn = document.getElementById('cloudPushBtn');
+    const pullBtn = document.getElementById('cloudPullBtn');
+    const autoSyncCb = document.getElementById('cloudAutoSync');
+
+    if (!tokenInput) return;
+
+    // Restore saved state
+    tokenInput.value = getToken();
+    autoSyncCb.checked = isAutoSync();
+
+    const refreshStatus = () => {
+      const statusEl = document.getElementById('cloudStatus');
+      const statusText = document.getElementById('cloudStatusText');
+      const lastSyncEl = document.getElementById('cloudLastSync');
+      const lastSyncTime = document.getElementById('cloudLastSyncTime');
+      const gistInfo = document.getElementById('cloudGistInfo');
+      const gistIdEl = document.getElementById('cloudGistId');
+      const gistLink = document.getElementById('cloudGistLink');
+
+      if (getToken()) {
+        statusEl.style.display = 'block';
+        statusText.textContent = 'Token configured';
+      } else {
+        statusEl.style.display = 'none';
+      }
+
+      const ls = getLastSync();
+      if (ls) {
+        lastSyncEl.style.display = 'block';
+        lastSyncTime.textContent = new Date(ls).toLocaleString();
+      } else {
+        lastSyncEl.style.display = 'none';
+      }
+
+      const gid = getGistId();
+      if (gid) {
+        gistInfo.style.display = 'block';
+        gistIdEl.textContent = gid;
+        gistLink.href = `https://gist.github.com/${gid}`;
+      } else {
+        gistInfo.style.display = 'none';
+      }
+    };
+
+    saveBtn.onclick = () => {
+      const val = tokenInput.value.trim();
+      setToken(val);
+      if (val) {
+        UI.toast('✅ Token saved', 'success');
+        // Verify token works
+        fetch('https://api.github.com/user', { headers: headers() })
+          .then(r => {
+            if (r.ok) return r.json();
+            throw new Error('Invalid token');
+          })
+          .then(user => {
+            UI.toast(`Connected as ${user.login}`, 'success');
+            // Try to find existing gist
+            return findExistingGist();
+          })
+          .then(gist => {
+            if (gist) {
+              setGistId(gist.id);
+              UI.toast('Found existing cloud backup', 'info');
+            }
+            refreshStatus();
+          })
+          .catch(e => {
+            UI.toast('⚠️ Token may be invalid: ' + e.message, 'error');
+            refreshStatus();
+          });
+      } else {
+        UI.toast('Token cleared', 'info');
+      }
+      refreshStatus();
+    };
+
+    pushBtn.onclick = async () => {
+      pushBtn.disabled = true;
+      pushBtn.innerHTML = '<i data-lucide="loader"></i> Pushing…';
+      UI.renderIcons();
+      try {
+        await push();
+        refreshStatus();
+      } finally {
+        pushBtn.disabled = false;
+        pushBtn.innerHTML = '<i data-lucide="cloud-upload"></i>Push to Cloud';
+        UI.renderIcons();
+      }
+    };
+
+    pullBtn.onclick = async () => {
+      pullBtn.disabled = true;
+      pullBtn.innerHTML = '<i data-lucide="loader"></i> Pulling…';
+      UI.renderIcons();
+      try {
+        const ok = await pull();
+        if (ok) {
+          refreshStatus();
+          // Re-render settings page to reflect new data
+          setTimeout(() => Pages.settings(), 500);
+        }
+      } finally {
+        pullBtn.disabled = false;
+        pullBtn.innerHTML = '<i data-lucide="cloud-download"></i>Pull from Cloud';
+        UI.renderIcons();
+      }
+    };
+
+    autoSyncCb.onchange = () => {
+      setAutoSync(autoSyncCb.checked);
+      UI.toast(autoSyncCb.checked ? 'Auto-sync enabled' : 'Auto-sync disabled', 'info');
+    };
+
+    refreshStatus();
+  }
+
+  return { push, pull, autoPushIfEnabled, initSettingsUI, isAutoSync };
 })();
 
 /* =========================================================
