@@ -16,7 +16,7 @@
       const theme = localStorage.getItem('analytica.theme') || 'light';
       document.documentElement.setAttribute('data-theme', theme);
       const meta = document.getElementById('themeColorMeta');
-      if(meta) meta.content = theme === 'dark' ? '#0a0a0b' : '#ffffff';
+      if(meta) meta.content = theme === 'dark' ? '#0a0a0b' : theme === 'amoled' ? '#000000' : '#ffffff';
     } catch(e) {}
   })();
 </script>
@@ -969,16 +969,59 @@ const Store = (() => {
         if (!data || !Array.isArray(data.tests)) throw new Error('Invalid data format');
         if (mode === 'overwrite') {
           state = { ...seed(), ...data };
-        } else if (mode === 'merge') {
-          const ids = new Set(state.tests.map(t => t.id));
-          for (const t of data.tests) {
-            if (!ids.has(t.id)) state.tests.unshift(t);
+        } else {
+          // --- Tests ---
+          if (mode === 'merge') {
+            const ids = new Set(state.tests.map(t => t.id));
+            for (const t of data.tests) {
+              if (!ids.has(t.id)) { state.tests.unshift(t); ids.add(t.id); }
+            }
+          } else if (mode === 'update') {
+            const idx = new Map(state.tests.map((t,i)=>[t.id,i]));
+            for (const t of data.tests) {
+              if (idx.has(t.id)) state.tests[idx.get(t.id)] = t;
+              else { state.tests.unshift(t); idx.set(t.id, 0); }
+            }
           }
-        } else if (mode === 'update') {
-          const idx = new Map(state.tests.map((t,i)=>[t.id,i]));
-          for (const t of data.tests) {
-            if (idx.has(t.id)) state.tests[idx.get(t.id)] = t;
-            else state.tests.unshift(t);
+
+          // --- Subjects: match by id, fall back to name (ids can differ across devices) ---
+          const byId = new Map(state.subjects.map(s => [s.id, s]));
+          const byName = new Map(state.subjects.map(s => [String(s.name||'').toLowerCase(), s]));
+          for (const cs of data.subjects || []) {
+            if (!cs || typeof cs !== 'object') continue;
+            const existing = byId.get(cs.id) || byName.get(String(cs.name||'').toLowerCase());
+            if (existing) {
+              // Union topics so custom topics added on another device come across
+              existing.topics = existing.topics || [];
+              for (const tp of cs.topics || []) {
+                if (!existing.topics.includes(tp)) existing.topics.push(tp);
+              }
+              // 'update' mode also syncs subject config fields
+              if (mode === 'update') {
+                existing.name = cs.name ?? existing.name;
+                existing.color = cs.color ?? existing.color;
+                existing.defaultQuestions = cs.defaultQuestions ?? existing.defaultQuestions;
+                existing.timeLimit = cs.timeLimit ?? existing.timeLimit;
+                existing.marksPerQ = cs.marksPerQ ?? existing.marksPerQ;
+                existing.negative = cs.negative ?? existing.negative;
+              }
+            } else {
+              const copy = JSON.parse(JSON.stringify(cs));
+              copy.topics = copy.topics || [];
+              state.subjects.push(copy);
+              byId.set(copy.id, copy);
+              byName.set(String(copy.name||'').toLowerCase(), copy);
+            }
+          }
+
+          // --- Error tags: union by name ---
+          for (const tag of data.errorTags || []) {
+            if (tag && !state.errorTags.includes(tag)) state.errorTags.push(tag);
+          }
+
+          // --- Settings: shallow-merge in 'update' mode only (merge keeps local prefs) ---
+          if (mode === 'update' && data.settings && typeof data.settings === 'object') {
+            state.settings = { ...state.settings, ...data.settings };
           }
         }
         save(state);
@@ -1053,7 +1096,7 @@ const UI = (() => {
     const m = el('modal');
     const footerDiv = document.createElement('div');
     footerDiv.className = 'modal-footer';
-    footerDiv.innerHTML = `<button class="btn btn-sm" data-close>Cancel</button><button class="btn btn-sm ${danger?'btn-primary btn-danger':'btn-primary'}" data-ok>${escape(okLabel)}</button>`;
+    footerDiv.innerHTML = `<button class="btn btn-sm" data-close>Cancel</button><button class="btn btn-sm ${danger?'btn-danger':'btn-primary'}" data-ok>${escape(okLabel)}</button>`;
     m.appendChild(footerDiv);
     renderIcons();
     
@@ -1071,7 +1114,7 @@ const UI = (() => {
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
   }
   function fmtDate(ts) {
-    const d = typeof ts === 'string' ? new Date(ts) : new Date(ts);
+    const d = new Date(ts);
     if (isNaN(d)) return ts;
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
@@ -1325,7 +1368,8 @@ const Charts = (() => {
   let instances = new Map();
 
   function themeColors() {
-    const dark = document.documentElement.dataset.theme === 'dark';
+    // Treat both 'dark' and 'amoled' as dark (amoled has a pure-black background)
+    const dark = document.documentElement.dataset.theme !== 'light';
     return {
       grid: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
       text: dark ? '#a1a1aa' : '#52525b',
@@ -1337,6 +1381,18 @@ const Charts = (() => {
 
   function destroy(id) {
     if (instances.has(id)) { instances.get(id).destroy(); instances.delete(id); }
+  }
+
+  let offlineWarned = false;
+  function chartReady(id) {
+    if (typeof Chart !== 'undefined') return true;
+    if (!offlineWarned) {
+      offlineWarned = true;
+      UI.toast('Charts unavailable — chart library could not load (offline?)', 'warn');
+    }
+    const holder = document.getElementById(id);
+    if (holder) holder.parentElement.innerHTML = '<div class="chart-box flex items-center justify-center text-muted">Charts unavailable offline</div>';
+    return false;
   }
 
   function commonOptions(tc) {
@@ -1359,7 +1415,7 @@ const Charts = (() => {
     const tc = themeColors();
     destroy(id);
     const ctx = document.getElementById(id);
-    if (!ctx) return;
+    if (!ctx || !chartReady(id)) return;
     const chart = new Chart(ctx, {
       type: 'line',
       data: { labels, datasets },
@@ -1383,7 +1439,7 @@ const Charts = (() => {
     const tc = themeColors();
     destroy(id);
     const ctx = document.getElementById(id);
-    if (!ctx) return;
+    if (!ctx || !chartReady(id)) return;
     const chart = new Chart(ctx, {
       type: 'bar',
       data: { labels, datasets },
@@ -1408,7 +1464,7 @@ const Charts = (() => {
     const tc = themeColors();
     destroy(id);
     const ctx = document.getElementById(id);
-    if (!ctx) return;
+    if (!ctx || !chartReady(id)) return;
     const chart = new Chart(ctx, {
       type: 'doughnut',
       data: { labels, datasets: [{ data, backgroundColor: colors || tc.palette, borderColor: 'transparent', borderWidth: 2 }] },
@@ -1430,7 +1486,7 @@ const Charts = (() => {
     const tc = themeColors();
     destroy(id);
     const ctx = document.getElementById(id);
-    if (!ctx) return;
+    if (!ctx || !chartReady(id)) return;
     const chart = new Chart(ctx, {
       type: 'radar',
       data: { labels, datasets },
@@ -1459,7 +1515,7 @@ const Charts = (() => {
     const tc = themeColors();
     destroy(id);
     const ctx = document.getElementById(id);
-    if (!ctx) return;
+    if (!ctx || !chartReady(id)) return;
     const chart = new Chart(ctx, {
       type: 'bar',
       data: { labels, datasets },
@@ -2727,18 +2783,21 @@ document.getElementById('themeAmoled').onclick = () => { App.setTheme('amoled');
       reader.onload = ev => {
         try {
           const data = JSON.parse(ev.target.result);
+          // Support both raw state exports and wrapped { metadata, data } backups
+          const payload = (data && data.data && Array.isArray(data.data.tests)) ? data.data : data;
           const m = UI.modal({
             title: 'Import Data',
             body: `<p class="mb-4 text-sm text-muted">Choose how to merge this backup:</p>
               <div class="flex flex-col gap-2">
-                <button class="btn" data-mode="merge"><strong>Merge</strong> — add new, skip existing</button>
+                <button class="btn" data-mode="merge"><strong>Merge</strong> — add new tests, subjects & tags, skip existing</button>
+                <button class="btn" data-mode="update"><strong>Update</strong> — merge + update changed tests & subjects</button>
                 <button class="btn btn-danger" data-mode="overwrite"><strong>Overwrite</strong> — replace everything</button>
               </div>`,
             footer: `<button class="btn btn-sm" data-close>Cancel</button>`,
           });
           m.root.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
             try {
-              Store.importData(data, b.dataset.mode);
+              Store.importData(payload, b.dataset.mode);
               m.close();
               UI.toast('Import successful','success');
               settings();
@@ -2817,10 +2876,16 @@ const CloudSync = (() => {
   }
 
   async function findExistingGist() {
-    const resp = await fetch('https://api.github.com/gists?per_page=100', { headers: headers() });
-    if (!resp.ok) throw new Error(`Failed to list gists (${resp.status})`);
-    const gists = await resp.json();
-    return gists.find(g => g.description === GIST_DESC && g.files[GIST_FILE]);
+    // Scan up to 10 pages of gists so an old backup isn't missed by the 100-gist first page
+    for (let page = 1; page <= 10; page++) {
+      const resp = await fetch(`https://api.github.com/gists?per_page=100&page=${page}`, { headers: headers() });
+      if (!resp.ok) throw new Error(`Failed to list gists (${resp.status})`);
+      const gists = await resp.json();
+      if (!Array.isArray(gists) || gists.length === 0) break;
+      const hit = gists.find(g => g.description === GIST_DESC && g.files && g.files[GIST_FILE]);
+      if (hit) return hit;
+    }
+    return undefined;
   }
 
   async function push() {
@@ -2935,8 +3000,8 @@ const CloudSync = (() => {
             </div>
             <p class="text-sm mb-4">How would you like to import?</p>
             <div class="flex flex-col gap-2">
-              <button class="btn" data-mode="merge"><strong>Merge</strong> — add new tests, keep existing</button>
-              <button class="btn" data-mode="update"><strong>Update</strong> — merge + update changed tests</button>
+              <button class="btn" data-mode="merge"><strong>Merge</strong> — add new tests, subjects & tags, keep existing</button>
+              <button class="btn" data-mode="update"><strong>Update</strong> — merge + update changed tests, subjects & settings</button>
               <button class="btn btn-danger" data-mode="overwrite"><strong>Overwrite</strong> — replace all local data</button>
             </div>
           `,
@@ -3103,11 +3168,11 @@ const App = (() => {
     Store.updateSettings({theme});
     localStorage.setItem('analytica.theme', theme);
     const btn = document.getElementById('themeToggle');
-    btn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+    btn.innerHTML = theme !== 'light' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
     UI.renderIcons();
     
     const meta = document.getElementById('themeColorMeta');
-    if(meta) meta.content = theme === 'dark' ? '#0a0a0b' : '#ffffff';
+    if(meta) meta.content = theme === 'dark' ? '#0a0a0b' : theme === 'amoled' ? '#000000' : '#ffffff';
   }
 
   function initTheme() {
